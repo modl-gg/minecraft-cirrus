@@ -11,6 +11,7 @@ import dev.simplix.cirrus.spigot.util.*;
 import dev.simplix.protocolize.api.item.BaseItemStack;
 
 import java.lang.reflect.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
@@ -133,7 +135,7 @@ public class ItemStackConverter implements Function<BaseItemStack, org.bukkit.in
 
       // Apply special 'precautions' against NMS.
       result.setType(material);
-      itemMeta.setDisplayName(Utils.colorize((String) protocolizeItemStack.displayName(true)));
+      itemMeta.displayName((Component) protocolizeItemStack.displayName().asComponent());
 
       // No texture-hash to insert
       if (textureHashToInsert != null && itemMeta instanceof SkullMeta skullMeta) {
@@ -207,22 +209,24 @@ public class ItemStackConverter implements Function<BaseItemStack, org.bukkit.in
     }
   }
 
+  // TODO: THIS IS UNTESTED -> ONLY HERE TO COMPILE
   private void writeLoreAndDisplayNameToStack(@NonNull BaseItemStack stack) {
-    if (stack.displayName(false) != null) {
+    if (stack.displayName() != null) {
       if (ProtocolVersionUtil.serverProtocolVersion() >= MINECRAFT_1_13) {
         stack.nbtData().put("Damage", new IntTag(stack.durability()));
-        final BaseComponent[] baseComponents = stack.displayName(false); // This is were crappy adventure components come into play
+        final BaseComponent[] baseComponents = (BaseComponent[]) stack.displayName().asComponent(); // This is were crappy adventure components come into play
         ComponentHelper.removeItalic(baseComponents);
         setDisplayNameTag(stack.nbtData(), ComponentSerializer.toString(baseComponents));
       } else {
         setDisplayNameTag(
             stack.nbtData(),
-            TextComponent.toLegacyText(stack.displayName(false)));
+            TextComponent.toLegacyText((BaseComponent) stack.displayName().asComponent()));
       }
     }
 
-    if (stack.lore(false) != null) {
-      setLoreTag(stack.nbtData(), stack.lore(false), ProtocolVersionUtil.serverProtocolVersion());
+    if (stack.lore() != null) {
+      setLoreTag(stack.nbtData(), new ArrayList<>(stack.lore().stream().map(i -> (BaseComponent[]) i.asComponent()).toList()),
+              ProtocolVersionUtil.serverProtocolVersion());
     }
   }
 

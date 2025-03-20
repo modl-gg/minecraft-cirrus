@@ -18,17 +18,4 @@ public class ComponentHelper {
     }
   }
 
-  public void fixItalic(BaseItemStack itemStack) {
-    final List<BaseComponent[]> loreRaw = itemStack.lore(false);
-    final List<BaseComponent[]> fixedLore = loreRaw
-        .stream()
-        .peek(ComponentHelper::removeItalic)
-        .toList();
-
-    itemStack.lore(fixedLore, false);
-
-    BaseComponent[] displayName = itemStack.displayName(false);
-    removeItalic(displayName);
-    itemStack.displayName(displayName);
-  }
 }

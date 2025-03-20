@@ -2,6 +2,7 @@ package dev.simplix.cirrus.spigot.services.converters;
 
 import dev.simplix.cirrus.item.CirrusItem;
 import dev.simplix.cirrus.spigot.util.ProtocolVersionUtil;
+import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.api.util.ProtocolVersions;
 import dev.simplix.protocolize.data.ItemType;
 
@@ -20,7 +21,7 @@ public class ItemTypeMaterialConverter implements Function<ItemType, Material> {
       return Material.valueOf(src.name());
     }
 
-    CirrusItem.of(ItemType.ITEM_FRAME, "Test", "test321");
+    CirrusItem.of(ItemType.ITEM_FRAME, ChatElement.of("test"), ChatElement.of("test321"));
     throw new IllegalArgumentException("Unsupported type "
                                        + src.name()
                                        + " on protocol version: "

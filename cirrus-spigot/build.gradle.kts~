@@ -46,7 +46,7 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT")
     implementation(project(":cirrus-api"))
-    // implementation("dev.simplix:protocolize-api:2.4.2") // Needs to be shaded in this case
+    implementation("dev.simplix:protocolize-api:2.4.2") // Needs to be shaded in this case
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }

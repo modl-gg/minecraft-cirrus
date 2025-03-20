@@ -11,6 +11,7 @@ import dev.simplix.cirrus.model.Click;
 import dev.simplix.cirrus.player.CirrusPlayerWrapper;
 import dev.simplix.cirrus.service.MenuBuildService;
 import dev.simplix.protocolize.api.Protocolize;
+import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.api.inventory.*;
 import dev.simplix.protocolize.api.item.BaseItemStack;
 import dev.simplix.protocolize.api.item.ItemStack;
@@ -83,7 +84,7 @@ public class BungeeMenuBuildService implements MenuBuildService {
 
     if (title != null) {
       BaseComponent[] titleComponent = removeItalic(title);
-      inventory.title(titleComponent);
+      inventory.title(ChatElement.of(titleComponent));
     }
   }
 
@@ -145,7 +146,6 @@ public class BungeeMenuBuildService implements MenuBuildService {
         finalStack = new CirrusItem(item);
       }
 
-      ComponentHelper.fixItalic(finalStack);
       inventory.item(slot, finalStack);
     });
   }
@@ -198,7 +198,7 @@ public class BungeeMenuBuildService implements MenuBuildService {
         .map((item) -> (BaseItemStack) item)
         .toList();
     if (!alreadyOpen) {
-      player.sendPacket(new OpenWindow(windowId, inventory.type(), inventory.titleJson()));
+      player.sendPacket(new OpenWindow(windowId, inventory.type(), inventory.title()));
 
       for (int i = 0; i < itemStacks.size(); i++) {
         final ItemStack itemStack = (ItemStack) itemStacks.get(i);
