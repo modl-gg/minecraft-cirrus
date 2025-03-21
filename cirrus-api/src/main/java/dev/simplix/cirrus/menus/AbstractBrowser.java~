@@ -72,7 +72,7 @@ public abstract class AbstractBrowser<T> {
   }
 
   public DisplayedMenu display(CirrusPlayerWrapper player) {
-    build();
+    if (!built) build();
     return currentPage().display(player);
   }
 
@@ -163,11 +163,14 @@ public abstract class AbstractBrowser<T> {
   protected void interceptBottomRow(MenuRow bottomRow) {
   }
 
+  private boolean built = false;
   // ----------------------------------------------------------------------------------------------------
   // Implementation
   // ----------------------------------------------------------------------------------------------------
 
   private void build() {
+    built = true;
+
     registerActionHandlers();
 
     int maximumSizeOfAllMenus = fixedSize == null
@@ -185,9 +188,12 @@ public abstract class AbstractBrowser<T> {
         .map(this::mapAndPut)
         .collect(Collectors.toList());
 
-    if (maximumItemsPerPage == 0) {
+    if (maximumItemsPerPage == 0 || collect.isEmpty()) {
+      currentPage().type(fixedSize);
+      currentPage().title(this.title() + (addPageNumberToTitle() ? " (0/0)" : ""));
       return;
     }
+
     List<List<CirrusItem>> pages = Lists.partition(collect, maximumItemsPerPage);
 
     for (List<CirrusItem> page : pages) {

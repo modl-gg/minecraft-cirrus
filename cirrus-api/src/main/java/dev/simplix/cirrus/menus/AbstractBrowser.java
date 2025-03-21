@@ -188,9 +188,12 @@ public abstract class AbstractBrowser<T> {
         .map(this::mapAndPut)
         .collect(Collectors.toList());
 
-    if (maximumItemsPerPage == 0) {
+    if (maximumItemsPerPage == 0 || collect.isEmpty()) {
+      currentPage().type(InventoryType.GENERIC_9X2);
+      currentPage().title(this.title() + (addPageNumberToTitle() ? " (0/0)" : ""));
       return;
     }
+
     List<List<CirrusItem>> pages = Lists.partition(collect, maximumItemsPerPage);
 
     for (List<CirrusItem> page : pages) {
