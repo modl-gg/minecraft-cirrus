@@ -67,14 +67,20 @@ allprojects {
 }
 
 subprojects {
+    plugins.withId("com.gradleup.shadow") {
+        tasks.named<Jar>("jar") {
+            archiveClassifier.set("slim")
+        }
+    }
+
     afterEvaluate {
         configure<PublishingExtension> {
             publications {
                 create<MavenPublication>("gpr") {
-                    from(components["java"])
                     groupId = "gg.modl.minecraft.cirrus"
                     artifactId = project.name
                     version = project.version.toString()
+                    from(components["java"])
                 }
             }
             repositories {
