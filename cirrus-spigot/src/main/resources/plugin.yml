@@ -1,0 +1,5 @@
+name: CirrusSpigot
+main: dev.simplix.cirrus.spigot.plugin.CirrusSpigotPlugin
+version: 3.0.0
+author: SimplixSoft
+api-version: "1.16"

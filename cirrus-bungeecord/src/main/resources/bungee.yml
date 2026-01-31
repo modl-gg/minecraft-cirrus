@@ -1,0 +1,6 @@
+name: Cirrus
+main: dev.simplix.cirrus.bungee.plugin.CirrusBungeePlugin
+version: 3.0.0
+author: SimplixSoft
+depends:
+  - Protocolize

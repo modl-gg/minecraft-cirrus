@@ -24,8 +24,8 @@ publishing {
     }
 
     repositories {
-        maven("https://repo.simplix.dev/repository/simplixsoft-public/") {
-            name = "simplixsoft-public"
+        maven("https://mvn.exceptionflug.de/repository/exceptionflug-public/") {
+            name = "exceptionflug"
         }
     }
 }

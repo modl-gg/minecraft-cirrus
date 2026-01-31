@@ -4,7 +4,6 @@ import dev.simplix.cirrus.Cirrus;
 import dev.simplix.cirrus.actionhandler.ActionHandlers;
 import dev.simplix.cirrus.item.CirrusItem;
 import dev.simplix.cirrus.item.Items;
-import dev.simplix.cirrus.menu.MenuRow;
 import dev.simplix.cirrus.menus.AbstractBrowser;
 import dev.simplix.cirrus.model.Click;
 import dev.simplix.cirrus.service.ItemService;
@@ -12,6 +11,7 @@ import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.data.ItemType;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -35,15 +35,18 @@ public class ItemTypeBrowser extends AbstractBrowser<ItemType> {
   }
 
   @Override
-  protected void interceptBottomRow(MenuRow bottomRow) {
-
-    bottomRow.get(8).set(
+  protected Map<Integer, CirrusItem> intercept(int menuSize) {
+    // Intercept the last slot in the bottom row for back button
+    int backButtonSlot = menuSize - 1;
+    return Map.of(
+        backButtonSlot,
         CirrusItem
             .of(
                 ItemType.ACACIA_DOOR,
                 ChatElement.ofLegacyText("§7Back"),
                 ChatElement.ofLegacyText("§7Go back to the previous menu"))
-            .actionHandler("back"));
+            .actionHandler("back")
+    );
   }
 
   @Override

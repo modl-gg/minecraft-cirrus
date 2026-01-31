@@ -1,9 +1,5 @@
-import org.gradle.internal.impldep.org.eclipse.jgit.lib.ObjectChecker.author
-
 plugins {
     id("java")
-    // https://plugins.gradle.org/plugin/dev.simplix.helper.bukkit
-    id("net.minecrell.plugin-yml.bungee") version "0.5.2"
     id("com.github.johnrengelman.shadow") version "7.0.0"
     id("xyz.jpenilla.run-waterfall") version "2.0.0"
     // Authenticated Maven publishing
@@ -17,15 +13,6 @@ repositories {
     mavenCentral()
 }
 
-// Will only be used in "dev-mode"
-bungee {
-    main = "dev.simplix.cirrus.bungee.plugin.CirrusBungeePlugin"
-    name = "Cirrus"
-    version = "3.0.0"
-    author = "SimplixSoft"
-    depends = setOf("Protocolize")
-}
-
 // publish
 publishing {
     publications {
@@ -33,17 +20,12 @@ publishing {
             from(components["java"])
         }
     }
-
-    repositories {
-        maven("https://repo.simplix.dev/repository/simplixsoft-public/") {
-            name = "simplixsoft-public"
-        }
-    }
 }
 
 repositories {
     mavenCentral()
     maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
+    maven(url = "https://repo.papermc.io/repository/maven-public/")
 }
 
 tasks {
@@ -63,7 +45,7 @@ tasks {
 
 dependencies {
 
-    compileOnly("net.md-5:bungeecord-api:1.19-R0.1-SNAPSHOT")
+    compileOnly("net.md-5:bungeecord-api:1.20-R0.2")
     implementation(project(":cirrus-api"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")

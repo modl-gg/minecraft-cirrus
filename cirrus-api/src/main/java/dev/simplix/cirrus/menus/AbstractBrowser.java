@@ -5,7 +5,6 @@ import dev.simplix.cirrus.Utils;
 import dev.simplix.cirrus.actionhandler.ActionHandler;
 import dev.simplix.cirrus.actionhandler.RegisteredActionHandler;
 import dev.simplix.cirrus.item.CirrusItem;
-import dev.simplix.cirrus.item.Items;
 import dev.simplix.cirrus.menu.*;
 import dev.simplix.cirrus.model.*;
 import dev.simplix.cirrus.player.CirrusPlayerWrapper;
@@ -14,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -50,9 +50,12 @@ public abstract class AbstractBrowser<T> {
   private final transient List<RegisteredActionHandler> actionHandlers = new LinkedList<>();
   private BusinessItemMap businessItemMap;
   @NonNull
-  private MenuRow bottomRow = new MenuRow();
-  @NonNull
   private String title;
+  /**
+   * Map of slot index to static MenuElement. These slots will not contain browser items
+   * and will remain static across all pages.
+   */
+  private final transient Map<Integer, MenuElement> interceptedSlots = new HashMap<>();
   /**
    * If this is set to null, the fixedSize of the menu will be determined automatically based on the
    * amount of items the menu will contain. Must at least be capable of holding 18 items.
@@ -93,9 +96,6 @@ public abstract class AbstractBrowser<T> {
 
   public void loadFrom(BrowserSchematic browserSchematic) {
     this.title = browserSchematic.title();
-    if (browserSchematic.bottomRow() != null) {
-      this.bottomRow = browserSchematic.bottomRow();
-    }
     if (browserSchematic.standardResult() != null) {
       this.standardResult = browserSchematic.standardResult();
     }
@@ -160,8 +160,18 @@ public abstract class AbstractBrowser<T> {
     return " (" + currentPageNumber() + "/" + pages.size() + ")";
   }
 
-  protected void interceptBottomRow(MenuRow bottomRow) {
+  /**
+   * Override this method to return a map of slots to intercept. Intercepted slots will remain static
+   * across all pages and will not contain browser items. The key is the slot index, and the value
+   * is the CirrusItem to display at that slot (or null for an empty slot).
+   *
+   * @param menuSize the total size of the menu (number of slots)
+   * @return a map of slot index to CirrusItem (null values create empty intercepted slots)
+   */
+  protected Map<Integer, CirrusItem> intercept(int menuSize) {
+    return Collections.emptyMap();
   }
+
 
   private boolean built = false;
   // ----------------------------------------------------------------------------------------------------
@@ -173,15 +183,33 @@ public abstract class AbstractBrowser<T> {
 
     registerActionHandlers();
 
-    int maximumSizeOfAllMenus = fixedSize == null
-        ? Utils.calculateSizeForContent(elements().size())
-        : Utils.sizeOfType(fixedSize);
-    int maximumItemsPerPage = maximumSizeOfAllMenus
-                              - 9; // Exclude the bottom row since its populated using the MenuRow property
     currentPageIndex.set(0);
     if (elements() == null) {
       return;
     }
+
+    // Determine menu size first
+    int menuSize = fixedSize == null
+        ? Utils.calculateSizeForContent(elements().size())
+        : Utils.sizeOfType(fixedSize);
+
+    // Get intercepted slots from subclass
+    Map<Integer, CirrusItem> interceptMap = intercept(menuSize);
+    for (Map.Entry<Integer, CirrusItem> entry : interceptMap.entrySet()) {
+      MenuElement element = new MenuElement();
+      if (entry.getValue() != null) {
+        element.set(entry.getValue());
+      }
+      interceptedSlots.put(entry.getKey(), element);
+    }
+
+    // Calculate available slots (those not intercepted)
+    List<Integer> availableSlots = IntStream.range(0, menuSize)
+        .filter(slot -> !interceptedSlots.containsKey(slot))
+        .boxed()
+        .collect(Collectors.toList());
+
+    int maximumItemsPerPage = availableSlots.size();
 
     final List<CirrusItem> collect = elements()
         .stream()
@@ -196,18 +224,23 @@ public abstract class AbstractBrowser<T> {
 
     List<List<CirrusItem>> pages = Lists.partition(collect, maximumItemsPerPage);
 
+    // Reset page index since we used currentPage() above
+    this.pages.clear();
+    currentPageIndex.set(0);
+
     for (List<CirrusItem> page : pages) {
       Menu menu = currentPage();
-      int size = page.size() + 9; // page.size -> Items to browse + bottombar (=9)
+      menu.type(fixedSize == null ? Utils.calculateTypeForContent(menuSize) : fixedSize);
 
+      // Place browser items only in available (non-intercepted) slots
       for (int i = 0; i < page.size(); i++) {
         CirrusItem cirrusItem = page.get(i);
-        cirrusItem.slot(i);
+        int actualSlot = availableSlots.get(i);
+        cirrusItem.slot(actualSlot);
         cirrusItem.actionHandler(CLICK_ACTION_HANDLER);
         menu.set(cirrusItem);
       }
 
-      menu.type(Utils.calculateTypeForContent(size));
       final String stringToAdd = titleAddon(pages);
       menu.title(this.title() + (addPageNumberToTitle() ? stringToAdd : ""));
 
@@ -267,19 +300,13 @@ public abstract class AbstractBrowser<T> {
 
     @Override
     protected void handleDisplay0() {
-
-      Items.defaultBottomRowProvider.accept(AbstractBrowser.this, AbstractBrowser.this.bottomRow);
-      AbstractBrowser.this.interceptBottomRow(AbstractBrowser.this.bottomRow);
-
-      int contentSize = typicalSize() - 9;
-      // Render bottom row
-      for (int rowIndex = 0; rowIndex < 9; rowIndex++) {
-        int absoluteIndex = contentSize + rowIndex;
-
-        MenuElement menuElement = bottomRow.get(rowIndex);
+      // Render all intercepted slots (static items that remain across pages)
+      for (Map.Entry<Integer, MenuElement> entry : interceptedSlots.entrySet()) {
+        int slot = entry.getKey();
+        MenuElement menuElement = entry.getValue();
         menuElement
             .item()
-            .ifPresent(baseItemStack -> menuElement.applyChanges(this, absoluteIndex));
+            .ifPresent(baseItemStack -> menuElement.applyChanges(this, slot));
       }
     }
 

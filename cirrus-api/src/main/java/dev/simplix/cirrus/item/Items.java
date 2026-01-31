@@ -3,13 +3,11 @@ package dev.simplix.cirrus.item;
 import dev.simplix.cirrus.color.StandardColorConfiguration;
 import dev.simplix.cirrus.effects.SpectrumEffect;
 import dev.simplix.cirrus.effects.WaveEffect;
-import dev.simplix.cirrus.menu.MenuRow;
 import dev.simplix.cirrus.menus.AbstractBrowser;
 import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.data.ItemType;
 
 import java.awt.Color;
-import java.util.function.BiConsumer;
 
 import lombok.experimental.UtilityClass;
 
@@ -24,46 +22,56 @@ import lombok.experimental.UtilityClass;
 public class Items {
 
     /**
-     * A {@link BiConsumer} that is used to provide the default bottom row for an AbstractBrowser.
+     * Creates a "Previous page" navigation item for browser menus.
+     *
+     * @param browser the browser to create the item for
+     * @return a CirrusItem configured as a previous page button
      */
-    public BiConsumer<AbstractBrowser<?>, MenuRow> defaultBottomRowProvider = (abstractBrowser, bottomRow) -> {
+    public CirrusItem previousPageItem(AbstractBrowser<?> browser) {
+        final int totalPages = browser.totalPages();
+        final int previous = browser.previousPageNumber();
 
-        // Previous page
-        final int totalPages = abstractBrowser.totalPages();
-        final int previous = abstractBrowser.previousPageNumber();
-        final int nextPageNumber = abstractBrowser.nextPageNumber();
-
-        if (abstractBrowser.hasPreviousPage()) {
-            bottomRow.get(0).set(CirrusItem
+        if (browser.hasPreviousPage()) {
+            return CirrusItem
                     .of(
                             ItemType.LIME_DYE,
                             ChatElement.ofLegacyText("§aPrevious page"),
                             ChatElement.ofLegacyText("§7Click to go to the previous page"),
                             ChatElement.ofLegacyText("§7Goto page §8" + previous + " §7of §8" + totalPages)
                     )
-                    .actionHandler(AbstractBrowser.PREVIOUS_PAGE_ACTION_HANDLER));
+                    .actionHandler(AbstractBrowser.PREVIOUS_PAGE_ACTION_HANDLER);
         } else {
-            bottomRow.get(0).set(CirrusItem.of(
+            return CirrusItem.of(
                     ItemType.GRAY_DYE,
                     ChatElement.ofLegacyText("§aPrevious page"),
-                    ChatElement.ofLegacyText("§7There is no previous page")));
+                    ChatElement.ofLegacyText("§7There is no previous page"));
         }
+    }
 
-        // Next page
-        if (abstractBrowser.hasNextPage()) {
-            bottomRow.get(1).set(CirrusItem.of(
+    /**
+     * Creates a "Next page" navigation item for browser menus.
+     *
+     * @param browser the browser to create the item for
+     * @return a CirrusItem configured as a next page button
+     */
+    public CirrusItem nextPageItem(AbstractBrowser<?> browser) {
+        final int totalPages = browser.totalPages();
+        final int nextPageNumber = browser.nextPageNumber();
+
+        if (browser.hasNextPage()) {
+            return CirrusItem.of(
                     ItemType.LIME_DYE,
                     ChatElement.ofLegacyText("§aNext page"),
                     ChatElement.ofLegacyText("§7Click to go to the next page"),
                     ChatElement.ofLegacyText("§7Goto page §8" + nextPageNumber + " §7of §8" + totalPages)
-            ).actionHandler(AbstractBrowser.NEXT_PAGE_ACTION_HANDLER));
+            ).actionHandler(AbstractBrowser.NEXT_PAGE_ACTION_HANDLER);
         } else {
-            bottomRow.get(1).set(CirrusItem.of(
+            return CirrusItem.of(
                     ItemType.GRAY_DYE,
                     ChatElement.ofLegacyText("§aNext page"),
-                    ChatElement.ofLegacyText("§7There is no next page")));
+                    ChatElement.ofLegacyText("§7There is no next page"));
         }
-    };
+    }
 
     /**
      * Creates a  {@link CirrusItem} with the  {@link SpectrumEffect}` applied to the item's name. The

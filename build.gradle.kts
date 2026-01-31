@@ -28,7 +28,6 @@ allprojects {
         mavenCentral()
         maven(url = "https://libraries.minecraft.net")
         maven(url = "https://jitpack.io")
-        maven(url = "https://repo.simplix.dev/repository/simplixsoft-public/")
         maven(url = "https://mvn.exceptionflug.de/repository/exceptionflug-public/")
     }
 

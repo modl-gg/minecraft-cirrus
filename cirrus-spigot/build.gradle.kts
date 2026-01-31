@@ -4,23 +4,12 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
     // https://github.com/jpenilla/run-paper
     id("xyz.jpenilla.run-paper") version "2.0.0"
-    // https://plugins.gradle.org/plugin/dev.simplix.helper.bukkit
-    id("net.minecrell.plugin-yml.bukkit") version "0.5.2"
     // Authenticated Maven publishing
     id("org.hibernate.build.maven-repo-auth") version "3.0.3"
 }
 
 group = "dev.simplix.cirrus"
 version = "3.0.0-SNAPSHOT"
-
-// Will only be used in "dev-mode"
-bukkit {
-    main = "dev.simplix.cirrus.spigot.plugin.CirrusSpigotPlugin"
-    name = "CirrusSpigot"
-    version = "3.0.0"
-    author = "SimplixSoft"
-    apiVersion = "1.16"
-}
 
 // publish
 publishing {
@@ -31,8 +20,8 @@ publishing {
     }
 
     repositories {
-        maven("https://repo.simplix.dev/repository/simplixsoft-public/") {
-            name = "simplixsoft-public"
+        maven("https://mvn.exceptionflug.de/repository/exceptionflug-public/") {
+            name = "exceptionflug"
         }
     }
 }
