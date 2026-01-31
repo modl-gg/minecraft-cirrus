@@ -11,15 +11,15 @@ import lombok.Data;
 @AllArgsConstructor
 public class OpenMenuActionHandler implements ActionHandler {
 
-  private Menu menuToOpen;
+    private Menu menuToOpen;
 
-  public static OpenMenuActionHandler of(Menu menuToOpen) {
-    return new OpenMenuActionHandler(menuToOpen);
-  }
+    public static OpenMenuActionHandler of(Menu menuToOpen) {
+        return new OpenMenuActionHandler(menuToOpen);
+    }
 
-  @Override
-  public CallResult handle(Click click) {
-    menuToOpen.display(click.player());
-    return CallResult.DENY_GRABBING;
-  }
+    @Override
+    public CallResult handle(Click click) {
+        menuToOpen.display(click.player());
+        return CallResult.DENY_GRABBING;
+    }
 }

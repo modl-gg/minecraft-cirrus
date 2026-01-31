@@ -14,14 +14,14 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 public class SearchConversation {
 
-  private final String prompt;
+    private final String prompt;
 
-  @Nullable
-  @Builder.Default
-  private String timeoutMessage = null;
+    @Nullable
+    @Builder.Default
+    private String timeoutMessage = null;
 
-  @Builder.Default
-  @Nullable
-  private Supplier<Menu> menuToOpen = null;
+    @Builder.Default
+    @Nullable
+    private Supplier<Menu> menuToOpen = null;
 
 }

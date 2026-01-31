@@ -1,52 +1,35 @@
 plugins {
     id("java")
-    // https://plugins.gradle.org/plugin/dev.simplix.helper.bukkit
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    // https://github.com/jpenilla/run-paper
-    id("xyz.jpenilla.run-velocity") version "2.0.0"
-    // Authenticated Maven publishing
-    id("org.hibernate.build.maven-repo-auth") version "3.0.3"
+    id("com.gradleup.shadow") version "9.3.1"
 }
 
-group = "dev.simplix.cirrus"
+group = "gg.modl.minecraft.cirrus"
 version = "3.0.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
     maven(url = "https://papermc.io/repo/repository/maven-public/")
 }
-// publish
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-        }
-    }
-
-    repositories {
-        maven("https://mvn.exceptionflug.de/repository/exceptionflug-public/") {
-            name = "exceptionflug"
-        }
-    }
-}
 
 dependencies {
     implementation(project(":cirrus-api"))
-    compileOnly("com.velocitypowered:velocity-api:3.1.1")
-    annotationProcessor("com.velocitypowered:velocity-api:3.1.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+
+    compileOnly("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
+//    annotationProcessor("com.velocitypowered:velocity-api:3.5.0-SNAPSHOT")
+
+    compileOnly("com.github.retrooper:packetevents-velocity:2.11.2")
+
+    // NBT library for item data conversion
+    compileOnly("com.github.Querz:NBT:6.1")
 }
 
 tasks {
-    runVelocity {
-        velocityVersion("3.1.1")
-    }
-
     assemble {
         dependsOn(shadowJar)
     }
 
     shadowJar {
+        archiveBaseName.set("Cirrus-Velocity")
+        archiveClassifier.set("")
     }
 }

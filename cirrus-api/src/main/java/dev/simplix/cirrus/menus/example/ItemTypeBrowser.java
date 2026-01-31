@@ -1,66 +1,85 @@
 package dev.simplix.cirrus.menus.example;
 
-import dev.simplix.cirrus.Cirrus;
 import dev.simplix.cirrus.actionhandler.ActionHandlers;
 import dev.simplix.cirrus.item.CirrusItem;
+import dev.simplix.cirrus.item.CirrusItemType;
 import dev.simplix.cirrus.item.Items;
 import dev.simplix.cirrus.menus.AbstractBrowser;
 import dev.simplix.cirrus.model.Click;
-import dev.simplix.cirrus.service.ItemService;
-import dev.simplix.protocolize.api.chat.ChatElement;
-import dev.simplix.protocolize.data.ItemType;
-import java.util.Arrays;
+import dev.simplix.cirrus.text.CirrusChatElement;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ItemTypeBrowser extends AbstractBrowser<ItemType> {
+public class ItemTypeBrowser extends AbstractBrowser<CirrusItemType> {
 
-  private final int protocolVersion;
-
-  public ItemTypeBrowser(int protocolVersion) {
-    this.protocolVersion = protocolVersion;
-    title("§7Item Browser");
-  }
-
-  @Override
-  protected int updateTicks() {
-    return 2;
-  }
-
-  @Override
-  protected void registerActionHandlers() {
-    registerActionHandler("back", ActionHandlers.openMenu(new SelectMenu()));
-  }
-
-  @Override
-  protected Map<Integer, CirrusItem> intercept(int menuSize) {
-    // Intercept the last slot in the bottom row for back button
-    int backButtonSlot = menuSize - 1;
-    return Map.of(
-        backButtonSlot,
-        CirrusItem
-            .of(
-                ItemType.ACACIA_DOOR,
-                ChatElement.ofLegacyText("§7Back"),
-                ChatElement.ofLegacyText("§7Go back to the previous menu"))
-            .actionHandler("back")
+    private static final List<CirrusItemType> BROWSABLE_ITEMS = List.of(
+        CirrusItemType.STONE,
+        CirrusItemType.DIAMOND,
+        CirrusItemType.EMERALD,
+        CirrusItemType.GOLD_INGOT,
+        CirrusItemType.IRON_INGOT,
+        CirrusItemType.REDSTONE,
+        CirrusItemType.COMPASS,
+        CirrusItemType.CLOCK,
+        CirrusItemType.PAPER,
+        CirrusItemType.BOOK,
+        CirrusItemType.CHEST,
+        CirrusItemType.ENDER_CHEST,
+        CirrusItemType.PLAYER_HEAD,
+        CirrusItemType.NAME_TAG,
+        CirrusItemType.HOPPER,
+        CirrusItemType.EMERALD_BLOCK,
+        CirrusItemType.BONE_BLOCK,
+        CirrusItemType.IRON_BLOCK,
+        CirrusItemType.COPPER_BLOCK
     );
-  }
 
-  @Override
-  protected void handleClick(Click click, ItemType value) {
-    click.player().sendMessage("§7You clicked on " + value.name());
-  }
+    private final int protocolVersion;
 
-  @Override
-  protected Collection<ItemType> elements() {
-    return Arrays.stream(ItemType.values()).filter(type -> Cirrus.service(ItemService.class).isItemAvailable(type, protocolVersion)).toList();
-  }
+    public ItemTypeBrowser(int protocolVersion) {
+        this.protocolVersion = protocolVersion;
+        title("§7Item Browser");
+    }
 
-  @Override
-  protected CirrusItem map(ItemType element) {
-    return Items.withWaveEffect(element, element.name());
-  }
+    @Override
+    protected void registerActionHandlers() {
+        registerActionHandler("back", ActionHandlers.openMenu(new SelectMenu()));
+    }
+
+    @Override
+    protected int updateTicks() {
+        return 2;
+    }
+
+    @Override
+    protected void handleClick(Click click, CirrusItemType value) {
+        click.player().sendMessage("§7You clicked on " + value.name());
+    }
+
+    @Override
+    protected Collection<CirrusItemType> elements() {
+        return BROWSABLE_ITEMS;
+    }
+
+    @Override
+    protected CirrusItem map(CirrusItemType element) {
+        return Items.withWaveEffect(element, element.name());
+    }
+
+    @Override
+    protected Map<Integer, CirrusItem> intercept(int menuSize) {
+        int backButtonSlot = menuSize - 1;
+        return Map.of(
+            backButtonSlot,
+            CirrusItem
+                .of(
+                    CirrusItemType.ACACIA_DOOR,
+                    CirrusChatElement.ofLegacyText("§7Back"),
+                    CirrusChatElement.ofLegacyText("§7Go back to the previous menu"))
+                .actionHandler("back")
+        );
+    }
 }

@@ -7,8 +7,8 @@ import dev.simplix.cirrus.item.CirrusItem;
  */
 public abstract class AbstractChangingItemEffect extends AbstractMenuEffect<CirrusItem> {
 
-  protected AbstractChangingItemEffect(CirrusItem input, int effectLength) {
-    super(input, effectLength);
-  }
+    protected AbstractChangingItemEffect(CirrusItem input, int effectLength) {
+        super(input, effectLength);
+    }
 
 }

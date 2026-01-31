@@ -13,35 +13,36 @@ import org.bukkit.entity.Player;
 @SuppressWarnings("unchecked")
 public class SpigotPlayerWrapper implements CirrusPlayerWrapper {
 
-  private final Player handle;
+    private final Player handle;
 
-  @Override
-  public UUID uuid() {
-    return handle.getUniqueId();
-  }
-
-  @Override
-  public <T> T handle() {
-    return (T) handle;
-  }
-
-  @Override
-  public int protocolVersion() {
-    return ProtocolVersionUtil.serverProtocolVersion();
-  }
-
-  @Override
-  public void play(SimpleSound sound) {
-    try {
-      final Sound bukkitSound = Sound.valueOf(sound.sound().name());
-      handle.playSound(handle.getLocation(), bukkitSound, sound.volume(), sound.pitch());
-    } catch (Throwable ignored) {
-
+    @Override
+    public UUID uuid() {
+        return handle.getUniqueId();
     }
-  }
 
-  @Override
-  public void sendMessage(String message) {
-    handle.sendMessage(Utils.colorize(message));
-  }
+    @Override
+    public <T> T handle() {
+        return (T) handle;
+    }
+
+    @Override
+    public int protocolVersion() {
+        return ProtocolVersionUtil.serverProtocolVersion();
+    }
+
+    @Override
+    public void play(SimpleSound sound) {
+        try {
+            String soundName = sound.sound().name();
+            soundName = soundName.replace(".", "_").toUpperCase();
+            final Sound bukkitSound = Sound.valueOf(soundName);
+            handle.playSound(handle.getLocation(), bukkitSound, sound.volume(), sound.pitch());
+        } catch (Throwable ignored) {
+        }
+    }
+
+    @Override
+    public void sendMessage(String message) {
+        handle.sendMessage(Utils.colorize(message));
+    }
 }

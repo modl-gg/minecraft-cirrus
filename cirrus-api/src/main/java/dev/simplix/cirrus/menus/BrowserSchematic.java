@@ -2,7 +2,7 @@ package dev.simplix.cirrus.menus;
 
 import dev.simplix.cirrus.model.BusinessItemMap;
 import dev.simplix.cirrus.model.CallResult;
-import dev.simplix.protocolize.data.inventory.InventoryType;
+import dev.simplix.cirrus.menu.CirrusInventoryType;
 import javax.annotation.Nullable;
 
 /**
@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 public record BrowserSchematic(
     String title,
     @Nullable CallResult standardResult,
-    @Nullable InventoryType fixedSize,
+    @Nullable CirrusInventoryType fixedSize,
     @Nullable BusinessItemMap businessItemMap
 ) {
 

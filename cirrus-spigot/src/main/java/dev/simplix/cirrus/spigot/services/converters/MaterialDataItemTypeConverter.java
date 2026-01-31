@@ -1,31 +1,23 @@
 package dev.simplix.cirrus.spigot.services.converters;
 
-import dev.simplix.cirrus.spigot.util.ProtocolVersionUtil;
-import dev.simplix.protocolize.api.util.ProtocolVersions;
-import dev.simplix.protocolize.data.ItemType;
+import dev.simplix.cirrus.item.CirrusItemType;
+import java.util.function.Function;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bukkit.material.MaterialData;
 
-import java.util.function.Function;
-
 @Slf4j
-public class MaterialDataItemTypeConverter implements Function<MaterialData, ItemType> {
+public class MaterialDataItemTypeConverter implements Function<MaterialData, CirrusItemType> {
 
-  @Override
-  public ItemType apply(@NonNull MaterialData src) {
-    // Modern versioning
-    if (ProtocolVersionUtil.serverProtocolVersion() >= ProtocolVersions.MINECRAFT_1_14) {
-      try {
-        return ItemType.valueOf(src.getItemType().name());
-      } catch (IllegalArgumentException e) {
-        // ItemType may not exist in Protocolize for newer server materials
-        log.debug("[Cirrus] ItemType {} not found in Protocolize, using STONE as fallback", src.getItemType().name());
-        return ItemType.STONE;
-      }
+    @Override
+    public CirrusItemType apply(@NonNull MaterialData src) {
+        try {
+            String materialName = src.getItemType().name().toLowerCase();
+            return CirrusItemType.of("minecraft:" + materialName);
+        } catch (Exception e) {
+            log.error("Cannot handle MaterialData on this server version!", e);
+            return CirrusItemType.STONE;
+        }
     }
-
-    throw new IllegalStateException("Version not supported");
-  }
 
 }

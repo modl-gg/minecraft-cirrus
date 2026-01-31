@@ -13,12 +13,12 @@ import dev.simplix.cirrus.model.Click;
  */
 public interface ActionHandler {
 
-  /**
-   * Handles a menu item click.
-   *
-   * @param click The {@link Click} object representing the click event
-   * @return A {@link CallResult} indicating whether the event should be allowed to continue to other
-   * event handlers
-   */
-  CallResult handle(Click click);
+    /**
+     * Handles a menu item click.
+     *
+     * @param click The {@link Click} object representing the click event
+     * @return A {@link CallResult} indicating whether the event should be allowed to continue to other
+     * event handlers
+     */
+    CallResult handle(Click click);
 }

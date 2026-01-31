@@ -8,23 +8,23 @@ import java.util.UUID;
 
 public final class UUIDTypeAdapter extends TypeAdapter<UUID> {
 
-  @Override
-  public void write(final JsonWriter out, final UUID value) throws IOException {
-    out.value(fromUUID(value));
-  }
+    @Override
+    public void write(final JsonWriter out, final UUID value) throws IOException {
+        out.value(fromUUID(value));
+    }
 
-  @Override
-  public UUID read(final JsonReader jsonReader) throws IOException {
-    return fromString(jsonReader.nextString());
-  }
+    @Override
+    public UUID read(final JsonReader jsonReader) throws IOException {
+        return fromString(jsonReader.nextString());
+    }
 
-  public static String fromUUID(final UUID value) {
-    return value.toString().replace("-", "");
-  }
+    private static UUID fromString(final String input) {
+        return UUID.fromString(input.replaceFirst(
+            "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
+            "$1-$2-$3-$4-$5"));
+    }
 
-  private static UUID fromString(final String input) {
-    return UUID.fromString(input.replaceFirst(
-        "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
-        "$1-$2-$3-$4-$5"));
-  }
+    public static String fromUUID(final UUID value) {
+        return value.toString().replace("-", "");
+    }
 }

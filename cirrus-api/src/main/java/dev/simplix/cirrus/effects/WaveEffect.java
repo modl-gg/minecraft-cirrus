@@ -6,7 +6,10 @@ import dev.simplix.cirrus.effect.AbstractMenuEffect;
 import dev.simplix.cirrus.service.ColorConvertService;
 import dev.simplix.cirrus.util.ToStringUtil;
 import java.awt.Color;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -22,167 +25,167 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WaveEffect extends AbstractMenuEffect<String> {
 
-  protected final Color[] colors;
+    protected final Color[] colors;
 
-  protected final String colorSuffix;
-  protected boolean reverse = false;
-  protected int transitionCount = 0;
+    protected final String colorSuffix;
+    protected boolean reverse = false;
+    protected int transitionCount = 0;
 
-  /**
-   * Constructs a new `WaveEffect` with the specified input string and colors.
-   *
-   * @param input  The input string to apply the effect to
-   * @param colors The colors to use in the effect
-   */
-  public WaveEffect(String input, Color[] colors) {
-    this(input, "§l", colors, 2);
-  }
-
-  /**
-   * Constructs a new `WaveEffect` with the specified input string, color suffix, colors, and effect
-   * length.
-   *
-   * @param input        The input string to apply the effect to
-   * @param colorSuffix  The color suffix to use for the effect
-   * @param colors       The colors to use in the effect
-   * @param effectLength The length of the effect
-   */
-  public WaveEffect(
-      String input,
-      String colorSuffix,
-      Color[] colors,
-      int effectLength) {
-    super(input, effectLength);
-    this.colors = Preconditions.checkNotNull(colors, "colors must not be null");
-    this.colorSuffix = Preconditions.checkNotNull(colorSuffix, "colorSuffix must not be null");
-    Preconditions.checkArgument(colors.length > 0, "colors must not be empty");
-  }
-
-  /**
-   * Creates a new `WaveEffect` with the specified input string and colors, using a default color
-   * suffix of "§l" and an effect length of 2.
-   *
-   * @param input  The input string to apply the effect to
-   * @param colors The colors to use in the effect
-   * @return A new `WaveEffect` instance
-   */
-  public static WaveEffect fat(String input, Color... colors) {
-    return new WaveEffect(input, "§l", colors, 2);
-  }
-
-  public WaveEffect reversed() {
-    this.reverse = true;
-    return this;
-  }
-
-  public WaveEffect reverse(boolean reverse) {
-    this.reverse = reverse;
-    return this;
-  }
-
-  public WaveEffect transitionCount(int transitionCount) {
-    this.transitionCount = transitionCount;
-    return this;
-  }
-
-  public WaveEffect length(int length) {
-    return new WaveEffect(this.input, this.colorSuffix, this.colors, length)
-        .reverse(this.reverse)
-        .transitionCount(this.transitionCount);
-  }
-
-  @Override
-  public List<String> calculate() {
-
-    final List<String> out = new ArrayList<>();
-
-    for (int i = 0; i < this.colors.length; i++) {
-      final Color color = this.colors[i];
-      final int index = (this.colors.length == i + 1) ? 0 : (i + 1);
-      final Color color2 = this.colors[index];
-
-      out.addAll(insertEffect(
-          Cirrus.service(ColorConvertService.class).colorToString(color) + this.colorSuffix,
-          Cirrus.service(ColorConvertService.class).colorToString(color2) + this.colorSuffix));
-
+    /**
+     * Constructs a new `WaveEffect` with the specified input string and colors.
+     *
+     * @param input  The input string to apply the effect to
+     * @param colors The colors to use in the effect
+     */
+    public WaveEffect(String input, Color[] colors) {
+        this(input, "§l", colors, 2);
     }
 
-    return out;
-  }
-
-  private List<String> insertEffect(String effectColor, String primaryColor) {
-    final List<String> out = new ArrayList<>();
-
-    if (this.reverse) {
-      for (int i = this.input.length() - 1; i >= 0; i--) {
-        out.addAll(Collections.nCopies(
-            this.effectLength,
-            addAtIndex(primaryColor + this.input, effectColor, i + primaryColor.length())));
-      }
-      if (this.transitionCount != 0) {
-        out.addAll(Collections.nCopies(this.transitionCount, effectColor + this.input));
-      }
-
-    } else {
-      for (int i = 0; i <= this.input.length(); i++) {
-        out.addAll(Collections.nCopies(
-            this.effectLength,
-            addAtIndex(primaryColor + this.input, effectColor, i + primaryColor.length())));
-      }
-      if (this.transitionCount != 0) {
-        out.addAll(Collections.nCopies(this.transitionCount, primaryColor + this.input));
-      }
-    }
-    return out;
-  }
-
-  private String addAtIndex(String str, String toAdd, int position) {
-    StringBuilder sb = new StringBuilder(str);
-    sb.insert(position, toAdd);
-    return sb.toString();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
+    /**
+     * Constructs a new `WaveEffect` with the specified input string, color suffix, colors, and effect
+     * length.
+     *
+     * @param input        The input string to apply the effect to
+     * @param colorSuffix  The color suffix to use for the effect
+     * @param colors       The colors to use in the effect
+     * @param effectLength The length of the effect
+     */
+    public WaveEffect(
+        String input,
+        String colorSuffix,
+        Color[] colors,
+        int effectLength) {
+        super(input, effectLength);
+        this.colors = Preconditions.checkNotNull(colors, "colors must not be null");
+        this.colorSuffix = Preconditions.checkNotNull(colorSuffix, "colorSuffix must not be null");
+        Preconditions.checkArgument(colors.length > 0, "colors must not be empty");
     }
 
-    WaveEffect that = (WaveEffect) o;
-
-    if (this.reverse != that.reverse) {
-      return false;
+    /**
+     * Creates a new `WaveEffect` with the specified input string and colors, using a default color
+     * suffix of "§l" and an effect length of 2.
+     *
+     * @param input  The input string to apply the effect to
+     * @param colors The colors to use in the effect
+     * @return A new `WaveEffect` instance
+     */
+    public static WaveEffect fat(String input, Color... colors) {
+        return new WaveEffect(input, "§l", colors, 2);
     }
-    if (this.transitionCount != that.transitionCount) {
-      return false;
-    }
-    if (!Arrays.equals(this.colors, that.colors)) {
-      return false;
-    }
-    return this.colorSuffix.equals(that.colorSuffix);
-  }
 
-  @Override
-  public int hashCode() {
-    int result = Arrays.hashCode(this.colors);
-    result = 31 * result + this.colorSuffix.hashCode();
-    result = 31 * result + (this.reverse ? 1 : 0);
-    result = 31 * result + this.transitionCount;
-    return result;
-  }
+    @Override
+    public List<String> calculate() {
 
-  @Override
-  public String toString() {
-    return ToStringUtil.of(this)
-        .add("colors", Arrays.toString(this.colors))
-        .add("colorSuffix", this.colorSuffix)
-        .add("reverse", this.reverse)
-        .add("transitionCount", this.transitionCount)
-        .add("input", this.input)
-        .add("effectLength", this.effectLength)
-        .toString();
-  }
+        final List<String> out = new ArrayList<>();
+
+        for (int i = 0; i < this.colors.length; i++) {
+            final Color color = this.colors[i];
+            final int index = (this.colors.length == i + 1) ? 0 : (i + 1);
+            final Color color2 = this.colors[index];
+
+            out.addAll(insertEffect(
+                Cirrus.service(ColorConvertService.class).colorToString(color) + this.colorSuffix,
+                Cirrus.service(ColorConvertService.class).colorToString(color2) + this.colorSuffix));
+
+        }
+
+        return out;
+    }
+
+    private List<String> insertEffect(String effectColor, String primaryColor) {
+        final List<String> out = new ArrayList<>();
+
+        if (this.reverse) {
+            for (int i = this.input.length() - 1; i >= 0; i--) {
+                out.addAll(Collections.nCopies(
+                    this.effectLength,
+                    addAtIndex(primaryColor + this.input, effectColor, i + primaryColor.length())));
+            }
+            if (this.transitionCount != 0) {
+                out.addAll(Collections.nCopies(this.transitionCount, effectColor + this.input));
+            }
+
+        } else {
+            for (int i = 0; i <= this.input.length(); i++) {
+                out.addAll(Collections.nCopies(
+                    this.effectLength,
+                    addAtIndex(primaryColor + this.input, effectColor, i + primaryColor.length())));
+            }
+            if (this.transitionCount != 0) {
+                out.addAll(Collections.nCopies(this.transitionCount, primaryColor + this.input));
+            }
+        }
+        return out;
+    }
+
+    private String addAtIndex(String str, String toAdd, int position) {
+        StringBuilder sb = new StringBuilder(str);
+        sb.insert(position, toAdd);
+        return sb.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Arrays.hashCode(this.colors);
+        result = 31 * result + this.colorSuffix.hashCode();
+        result = 31 * result + (this.reverse ? 1 : 0);
+        result = 31 * result + this.transitionCount;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        WaveEffect that = (WaveEffect) o;
+
+        if (this.reverse != that.reverse) {
+            return false;
+        }
+        if (this.transitionCount != that.transitionCount) {
+            return false;
+        }
+        if (!Arrays.equals(this.colors, that.colors)) {
+            return false;
+        }
+        return this.colorSuffix.equals(that.colorSuffix);
+    }
+
+    @Override
+    public String toString() {
+        return ToStringUtil.of(this)
+            .add("colors", Arrays.toString(this.colors))
+            .add("colorSuffix", this.colorSuffix)
+            .add("reverse", this.reverse)
+            .add("transitionCount", this.transitionCount)
+            .add("input", this.input)
+            .add("effectLength", this.effectLength)
+            .toString();
+    }
+
+    public WaveEffect reversed() {
+        this.reverse = true;
+        return this;
+    }
+
+    public WaveEffect length(int length) {
+        return new WaveEffect(this.input, this.colorSuffix, this.colors, length)
+            .reverse(this.reverse)
+            .transitionCount(this.transitionCount);
+    }
+
+    public WaveEffect reverse(boolean reverse) {
+        this.reverse = reverse;
+        return this;
+    }
+
+    public WaveEffect transitionCount(int transitionCount) {
+        this.transitionCount = transitionCount;
+        return this;
+    }
 }

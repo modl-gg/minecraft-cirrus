@@ -6,26 +6,26 @@ import dev.simplix.cirrus.player.CirrusPlayerWrapper;
 
 public interface MenuBuildService {
 
-  default DisplayedMenu buildAndOpenMenu(
-      Menu menu,
-      CirrusPlayerWrapper playerWrapper) {
-    menu.handleDisplay();
-    if (menu.soundOnOpen() != null) {
-      playerWrapper.play(menu.soundOnOpen());
+    default DisplayedMenu buildAndOpenMenu(
+        Menu menu,
+        CirrusPlayerWrapper playerWrapper) {
+        menu.handleDisplay();
+        if (menu.soundOnOpen() != null) {
+            playerWrapper.play(menu.soundOnOpen());
+        }
+        return openAndBuildMenu0(menu, playerWrapper);
     }
-    return openAndBuildMenu0(menu, playerWrapper);
-  }
 
-  DisplayedMenu openAndBuildMenu0(Menu menu, CirrusPlayerWrapper playerWrapper);
+    DisplayedMenu openAndBuildMenu0(Menu menu, CirrusPlayerWrapper playerWrapper);
 
-  void updateMenu(DisplayedMenu displayedMenu);
+    void updateMenu(DisplayedMenu displayedMenu);
 
-  default void closeMenu(DisplayedMenu displayedMenu) {
-    displayedMenu.closed().set(true);
-    closeMenu0(displayedMenu);
-    displayedMenu.value().handleClose();
-  }
+    default void closeMenu(DisplayedMenu displayedMenu) {
+        displayedMenu.closed().set(true);
+        closeMenu0(displayedMenu);
+        displayedMenu.value().handleClose();
+    }
 
-  void closeMenu0(DisplayedMenu displayedMenu);
+    void closeMenu0(DisplayedMenu displayedMenu);
 
 }

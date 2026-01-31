@@ -6,8 +6,8 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class StandardColorConfiguration {
 
-  public Color firstColor = new Color(0, 140, 255);
-  public Color accentColor = Color.CYAN;
+    public Color firstColor = new Color(0, 140, 255);
+    public Color accentColor = Color.CYAN;
 }
 
 

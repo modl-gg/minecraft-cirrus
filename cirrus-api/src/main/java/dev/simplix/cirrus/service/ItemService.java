@@ -1,11 +1,12 @@
 package dev.simplix.cirrus.service;
 
-import dev.simplix.protocolize.api.Protocolize;
-import dev.simplix.protocolize.data.ItemType;
+import dev.simplix.cirrus.item.CirrusItemType;
 
 public class ItemService {
 
-  public boolean isItemAvailable(ItemType itemType, int protocolVersion) {
-    return Protocolize.mappingProvider().mapping(itemType, protocolVersion) != null;
-  }
+    public boolean isItemAvailable(CirrusItemType itemType, int protocolVersion) {
+        // Item availability checking will be handled by platform implementations
+        // For now, assume all items are available
+        return itemType != null;
+    }
 }

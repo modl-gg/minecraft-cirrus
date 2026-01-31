@@ -10,46 +10,45 @@ import dev.simplix.cirrus.model.Click;
 import dev.simplix.cirrus.player.CirrusPlayerWrapper;
 import dev.simplix.cirrus.schematic.MenuSchematic;
 import dev.simplix.cirrus.service.MenuBuildService;
-import lombok.NoArgsConstructor;
-
 import java.util.function.Consumer;
+import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 public class SimpleMenu extends AbstractMenu {
 
-  public SimpleMenu(MenuSchematic schematic) {
-    super(schematic);
-  }
+    public SimpleMenu(MenuSchematic schematic) {
+        super(schematic);
+    }
 
-  @Override
-  public void loadFrom(MenuSchematic menuSchematic) {
+    public void registerActionHandler(String actionHandlerString, Consumer<Click> clickConsumer) {
+        this.actionHandlers.add(new RegisteredActionHandler(actionHandlerString, click -> {
+            clickConsumer.accept(click);
+            return CallResult.DENY_GRABBING;
+        }));
+    }
 
-  }
+    public void registerActionHandler(String actionHandlerString, ActionHandler actionHandler) {
+        this.actionHandlers.add(new RegisteredActionHandler(actionHandlerString, actionHandler));
+    }
 
-  public void registerActionHandler(String actionHandlerString, Consumer<Click> clickConsumer) {
-    this.actionHandlers.add(new RegisteredActionHandler(actionHandlerString, click -> {
-      clickConsumer.accept(click);
-      return CallResult.DENY_GRABBING;
-    }));
-  }
+    @Override
+    public void loadFrom(MenuSchematic menuSchematic) {
 
-  public void registerActionHandler(String actionHandlerString, ActionHandler actionHandler) {
-    this.actionHandlers.add(new RegisteredActionHandler(actionHandlerString, actionHandler));
-  }
+    }
 
-  @Override
-  public DisplayedMenu display(CirrusPlayerWrapper player) {
-    return Cirrus.service(MenuBuildService.class).buildAndOpenMenu(this, player);
-  }
+    @Override
+    public DisplayedMenu display(CirrusPlayerWrapper player) {
+        return Cirrus.service(MenuBuildService.class).buildAndOpenMenu(this, player);
+    }
 
-  @Override
-  public void handleClose() {
+    @Override
+    public void handleClose() {
 
-  }
+    }
 
-  @Override
-  public SimpleMenu copy() {
-//    return new SimpleMenu(this.schematic.copy(), new LinkedList<>(this.actionHandlers));
-    throw new AbstractMethodError("Not implemented yet");
-  }
+    @Override
+    public SimpleMenu copy() {
+        //    return new SimpleMenu(this.schematic.copy(), new LinkedList<>(this.actionHandlers));
+        throw new AbstractMethodError("Not implemented yet");
+    }
 }

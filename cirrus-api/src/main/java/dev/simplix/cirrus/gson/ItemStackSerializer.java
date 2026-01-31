@@ -1,44 +1,49 @@
 package dev.simplix.cirrus.gson;
 
-import com.google.gson.*;
-import dev.simplix.cirrus.item.CirrusItem;
-import dev.simplix.protocolize.api.item.BaseItemStack;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import dev.simplix.cirrus.item.CirrusBaseItemStack;
+import dev.simplix.cirrus.text.CirrusChatElement;
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class ItemStackSerializer implements JsonSerializer<BaseItemStack> {
+public class ItemStackSerializer implements JsonSerializer<CirrusBaseItemStack> {
 
-  @Override
-  public JsonElement serialize(
-      BaseItemStack src,
-      Type typeOfSrc,
-      JsonSerializationContext context) {
-    new Throwable().printStackTrace();
-    final JsonObject jsonObject = new JsonObject();
+    @Override
+    public JsonElement serialize(
+        CirrusBaseItemStack src,
+        Type typeOfSrc,
+        JsonSerializationContext context) {
+        final JsonObject jsonObject = new JsonObject();
 
-    jsonObject.add(
-        RuntimeTypeAdapterFactory.TYPE,
-        new JsonPrimitive(src.getClass().getSimpleName().toLowerCase()));
+        jsonObject.add(
+            RuntimeTypeAdapterFactory.TYPE,
+            new JsonPrimitive(src.getClass().getSimpleName().toLowerCase()));
 
-    jsonObject.add("type", context.serialize(src.itemType()));
-    jsonObject.add("amount", new JsonPrimitive(src.amount()));
-    jsonObject.add("durability", new JsonPrimitive(src.durability()));
-    jsonObject.add("hide-flags", new JsonPrimitive(src.hideFlags()));
-    jsonObject.add("nbt", context.serialize(src.nbtData()));
-    jsonObject.add("display-name", new JsonPrimitive(src.getClass().getSimpleName()));
-    final String obj = src.displayName().asLegacyText();
-    if (obj != null) {
-      jsonObject.add("display-name", new JsonPrimitive(obj));
+        if (src.itemType() != null) {
+            jsonObject.add("type", new JsonPrimitive(src.itemType().identifier()));
+        }
+        jsonObject.add("amount", new JsonPrimitive(src.amount()));
+        jsonObject.add("durability", new JsonPrimitive(src.durability()));
+        jsonObject.add("hide-flags", new JsonPrimitive(src.hideFlags()));
+        jsonObject.add("nbt", context.serialize(src.nbtData()));
+
+        if (src.displayName() != null && !src.displayName().isEmpty()) {
+            jsonObject.add("display-name", new JsonPrimitive(src.displayName().asLegacyText()));
+        }
+
+        final List<String> lores = src.lore().stream()
+            .map(CirrusChatElement::asLegacyText)
+            .toList();
+        if (!lores.isEmpty()) {
+            jsonObject.add("lore", context.serialize(lores));
+        }
+
+        jsonObject.add("flags", context.serialize(src.itemFlags()));
+
+        return jsonObject;
     }
-
-    final List<String> lores = src.lore().stream().map(s -> s.asLegacyText()).collect(Collectors.toList());
-    if (!lores.isEmpty()) {
-      jsonObject.add("lore", context.serialize(lores));
-    }
-
-    jsonObject.add("flags", context.serialize(src.itemFlags()));
-
-    return jsonObject;
-  }
 }

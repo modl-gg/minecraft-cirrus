@@ -3,26 +3,17 @@ plugins {
     application
 }
 
-group = "dev.simplix.cirrus"
+group = "gg.modl.minecraft.cirrus"
 version = "3.0.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-        }
-    }
-}
-
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
-}
+    // NBT library for item data serialization
+    compileOnly("com.github.Querz:NBT:6.1")
+    testImplementation("com.github.Querz:NBT:6.1")
 
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
+    // Adventure for text components
+    compileOnly("net.kyori:adventure-api:4.14.0")
+    compileOnly("net.kyori:adventure-text-serializer-legacy:4.14.0")
+    testImplementation("net.kyori:adventure-api:4.14.0")
+    testImplementation("net.kyori:adventure-text-serializer-legacy:4.14.0")
 }

@@ -1,216 +1,287 @@
 package dev.simplix.cirrus.bungee.menubuilder;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
+import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemLore;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import com.github.retrooper.packetevents.protocol.nbt.*;
+import com.github.retrooper.packetevents.protocol.player.User;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCloseWindow;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
 import dev.simplix.cirrus.actionhandler.ActionHandler;
 import dev.simplix.cirrus.bungee.utils.ComponentHelper;
-import dev.simplix.cirrus.item.CirrusItem;
-import dev.simplix.cirrus.menu.*;
-import dev.simplix.cirrus.model.CallResult;
+import dev.simplix.cirrus.inventory.InventoryTracker;
+import dev.simplix.cirrus.inventory.InventoryTracker.TrackedInventory;
+import dev.simplix.cirrus.item.CirrusBaseItemStack;
+import dev.simplix.cirrus.item.CirrusItemType;
+import dev.simplix.cirrus.menu.CirrusInventoryType;
+import dev.simplix.cirrus.menu.DisplayedMenu;
+import dev.simplix.cirrus.menu.Menu;
+import dev.simplix.cirrus.menu.Menus;
+import dev.simplix.cirrus.model.CirrusClickType;
 import dev.simplix.cirrus.model.Click;
 import dev.simplix.cirrus.player.CirrusPlayerWrapper;
 import dev.simplix.cirrus.service.MenuBuildService;
-import dev.simplix.protocolize.api.Protocolize;
-import dev.simplix.protocolize.api.chat.ChatElement;
-import dev.simplix.protocolize.api.inventory.*;
-import dev.simplix.protocolize.api.item.BaseItemStack;
-import dev.simplix.protocolize.api.item.ItemStack;
-import dev.simplix.protocolize.api.player.ProtocolizePlayer;
-import dev.simplix.protocolize.data.packets.*;
-import java.util.*;
-import java.util.function.Consumer;
-import javax.annotation.Nullable;
-import lombok.NonNull;
+import dev.simplix.cirrus.text.CirrusChatElement;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.querz.nbt.tag.*;
 
 @Slf4j
 public class BungeeMenuBuildService implements MenuBuildService {
 
-  private final BiMap<UUID, Inventory> protocolizeBuildMap = HashBiMap.create();
-  private final Set<Long> usedIDs = new HashSet<>();
+    @Getter
+    private final InventoryTracker inventoryTracker = new InventoryTracker();
+    private final Set<Long> usedIDs = new HashSet<>();
 
-  private final Consumer<InventoryClose> inventoryCloseConsumer = (inventoryClose) -> {
-    final UUID uuid = inventoryClose.player().uniqueId();
-    Menus.of(uuid).ifPresent(menu -> {
-      Menus.remove(uuid);
-      protocolizeBuildMap.remove(uuid);
-    });
-  };
+    @Override
+    public DisplayedMenu openAndBuildMenu0(Menu menu, CirrusPlayerWrapper playerWrapper) {
+        ProxiedPlayer player = playerWrapper.handle();
+        UUID playerUuid = player.getUniqueId();
+        User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
 
-  private final Consumer<InventoryClick> inventoryClickConsumer = (inventoryClick) -> {
+        int windowId = inventoryTracker.generateWindowId(playerUuid);
+        long id = generateID();
 
-    inventoryClick.cancelled(true);
-    Menus
-        .of(inventoryClick.player().uniqueId())
-        .ifPresent(menu -> menu.value().actionHandler(inventoryClick.slot())
-                .ifPresent(actionHandler ->
-                    inventoryClick.cancelled(handle(inventoryClick, menu, actionHandler)
-                                             != CallResult.ALLOW_GRABBING))
-                  );
+        CirrusInventoryType invType = menu.type();
+        int size = invType.size();
 
-  };
+        CirrusChatElement titleElement = CirrusChatElement.ofLegacyText(menu.title() != null ? menu.title() : "");
+        Component title = ComponentHelper.removeItalic(titleElement.asComponent());
 
-  @Nullable
-  private static CallResult handle(
-      InventoryClick inventoryClick,
-      DisplayedMenu menu,
-      ActionHandler actionHandler) {
-    CallResult result = null;
+        CirrusBaseItemStack[] items = new CirrusBaseItemStack[size];
+        menu.rootItems().forEach((slot, item) -> {
+            if (slot >= 0 && slot < size) {
+                items[slot] = item;
+            }
+        });
 
-    try {
-      result = actionHandler.handle(new Click(inventoryClick.clickType(), menu,
-          inventoryClick.clickedItem(), inventoryClick.slot()));
-    } catch (Exception exception) {
-      log.warn("Exception caught in clickhandler", exception);
+        DisplayedMenu displayedMenu = new DisplayedMenu(menu, windowId, playerWrapper, this, id);
+
+        TrackedInventory tracked = new TrackedInventory(
+            windowId,
+            invType,
+            titleElement,
+            items,
+            displayedMenu
+        );
+
+        inventoryTracker.track(playerUuid, windowId, tracked);
+
+        sendOpenWindow(user, windowId, invType, title);
+        sendWindowItems(user, windowId, items, playerWrapper.protocolVersion());
+
+        return displayedMenu;
     }
 
-    return result;
-  }
-
-  private static BaseComponent[] removeItalic(String title) {
-    BaseComponent[] titleComponent = TextComponent.fromLegacyText(title);
-    for (BaseComponent component : titleComponent) {
-      if (!component.isItalic()) {
-        component.setItalic(false); // Resolve client side behavior
-      }
-    }
-    return titleComponent;
-  }
-
-  private static void setInventoryTitle(String title, Inventory inventory) {
-
-    if (title != null) {
-      BaseComponent[] titleComponent = removeItalic(title);
-      inventory.title(ChatElement.of(titleComponent));
-    }
-  }
-
-  @Override
-  public DisplayedMenu openAndBuildMenu0(Menu menu, CirrusPlayerWrapper playerWrapper) {
-    ProxiedPlayer player = playerWrapper.handle();
-    Inventory inventory = createInventory(menu);
-
-    buildMenuIntoInventory(inventory, menu);
-    long id = generateID();
-
-    final ProtocolizePlayer protocolizePlayer = Protocolize
-        .playerProvider()
-        .player(player.getUniqueId());
-    sendInventoryToPlayer(menu, protocolizePlayer, inventory);
-
-    return new DisplayedMenu(menu, inventory, playerWrapper, this, id);
-  }
-
-  @Override
-  public void updateMenu(DisplayedMenu displayedMenu) {
-    Inventory inventory = (Inventory) displayedMenu.nativeMenu();
-    final ProtocolizePlayer player = Protocolize
-        .playerProvider()
-        .player(displayedMenu.player().uuid());
-    if (displayedMenu.closed().get()) {
-      return;
-    }
-    if (inventory.type() == displayedMenu.value().type()) {
-      buildMenuIntoInventory(inventory, displayedMenu.value());
-      openOrUpdateInventory(player, inventory);
-
-    } else {
-      buildAndOpenMenu(displayedMenu.value(), displayedMenu.player());
-    }
-  }
-
-  @Override
-  public void closeMenu0(DisplayedMenu displayedMenu) {
-    Protocolize.playerProvider().player(displayedMenu.player().uuid()).closeInventory();
-  }
-
-  private void sendInventoryToPlayer(
-      Menu menu,
-      ProtocolizePlayer player,
-      Inventory inventory) {
-    protocolizeBuildMap.put(player.uniqueId(), inventory);
-    openOrUpdateInventory(player, inventory);
-  }
-
-  private void buildMenuIntoInventory(@NonNull Inventory inventory, @NonNull Menu menu) {
-    setInventoryTitle(menu.title(), inventory);
-    menu.rootItems().forEach((slot, item) -> {
-
-      ItemStack finalStack;
-      if (item instanceof ItemStack itemStack) {
-        finalStack = itemStack;
-      } else {
-        finalStack = new CirrusItem(item);
-      }
-
-      inventory.item(slot, finalStack);
-    });
-  }
-
-  private Inventory createInventory(@NonNull Menu menu) {
-    Inventory inventory = new Inventory(menu.type());
-
-    inventory.onClose(inventoryCloseConsumer);
-    inventory.onClick(inventoryClickConsumer);
-
-    return inventory;
-  }
-
-  private Long generateID() {
-    long id = 0;
-    while (usedIDs.contains(id)) {
-      id++;
-    }
-    usedIDs.add(id);
-    return id;
-  }
-
-  private void openOrUpdateInventory(ProtocolizePlayer player, Inventory inventory) {
-    boolean alreadyOpen = false;
-    int windowId = -1;
-
-    for (Integer id : player.registeredInventories().keySet()) {
-      Inventory val = player.registeredInventories().get(id);
-      if (val == inventory) {
-        windowId = id;
-        alreadyOpen = true;
-        break;
-      }
-    }
-    if (windowId == -1) {
-      windowId = player.generateWindowId();
-      player.registerInventory(windowId, inventory);
-    }
-
-    int protocolVersion;
-    try {
-      protocolVersion = player.protocolVersion();
-    } catch (Throwable t) {
-      protocolVersion = 47;
-    }
-
-    final List<BaseItemStack> itemStacks = inventory
-        .itemsIndexed(protocolVersion)
-        .stream()
-        .map((item) -> (BaseItemStack) item)
-        .toList();
-    if (!alreadyOpen) {
-      player.sendPacket(new OpenWindow(windowId, inventory.type(), inventory.title()));
-
-      for (int i = 0; i < itemStacks.size(); i++) {
-        final ItemStack itemStack = (ItemStack) itemStacks.get(i);
-        if (itemStack == null) {
-          continue;
+    @Override
+    public void updateMenu(DisplayedMenu displayedMenu) {
+        if (displayedMenu.closed().get()) {
+            return;
         }
-        final SetSlot set = new SetSlot((byte) windowId, (short) i, itemStack, 1);
-        player.sendPacket(set);
-      }
+
+        ProxiedPlayer player = displayedMenu.player().handle();
+        User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
+        UUID playerUuid = player.getUniqueId();
+        int windowId = (int) displayedMenu.nativeMenu();
+
+        Optional<TrackedInventory> trackedOpt = inventoryTracker.get(playerUuid, windowId);
+        if (trackedOpt.isEmpty()) {
+            buildAndOpenMenu(displayedMenu.value(), displayedMenu.player());
+            return;
+        }
+
+        TrackedInventory tracked = trackedOpt.get();
+        Menu menu = displayedMenu.value();
+
+        if (tracked.type() != menu.type()) {
+            buildAndOpenMenu(menu, displayedMenu.player());
+            return;
+        }
+
+        CirrusBaseItemStack[] items = tracked.items();
+        menu.rootItems().forEach((slot, item) -> {
+            if (slot >= 0 && slot < items.length) {
+                items[slot] = item;
+            }
+        });
+
+        sendWindowItems(user, windowId, items, displayedMenu.player().protocolVersion());
     }
 
-    player.sendPacket(new WindowItems((short) windowId, new ArrayList<>(itemStacks), 1));
-  }
+    @Override
+    public void closeMenu0(DisplayedMenu displayedMenu) {
+        ProxiedPlayer player = displayedMenu.player().handle();
+        User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
+        int windowId = (int) displayedMenu.nativeMenu();
+        user.sendPacket(new WrapperPlayServerCloseWindow(windowId));
 
+        inventoryTracker.untrack(player.getUniqueId(), windowId);
+    }
+
+    public void handleClick(User user, TrackedInventory tracked, int slot, CirrusClickType clickType) {
+        DisplayedMenu displayedMenu = tracked.displayedMenu();
+        if (displayedMenu == null || displayedMenu.closed().get()) {
+            return;
+        }
+
+        Menu menu = displayedMenu.value();
+        Optional<ActionHandler> handlerOpt = menu.actionHandler(slot);
+
+        if (handlerOpt.isEmpty()) {
+            return;
+        }
+
+        CirrusBaseItemStack clickedItem = slot >= 0 && slot < tracked.items().length
+            ? tracked.items()[slot]
+            : null;
+
+        Click click = new Click(clickType, displayedMenu, clickedItem, slot);
+
+        try {
+            handlerOpt.get().handle(click);
+        } catch (Exception e) {
+            log.warn("Exception caught in click handler", e);
+        }
+    }
+
+    public void handleClose(UUID playerUuid, TrackedInventory tracked) {
+        DisplayedMenu displayedMenu = tracked.displayedMenu();
+        if (displayedMenu != null) {
+            displayedMenu.closed().set(true);
+        }
+        Menus.remove(playerUuid);
+    }
+
+    private void sendOpenWindow(User user, int windowId, CirrusInventoryType type, Component title) {
+        WrapperPlayServerOpenWindow packet = new WrapperPlayServerOpenWindow(
+            windowId,
+            type.toPacketEventsTypeId(),
+            title
+        );
+        user.sendPacket(packet);
+    }
+
+    private void sendWindowItems(User user, int windowId, CirrusBaseItemStack[] items, int protocolVersion) {
+        List<ItemStack> packetItems = new ArrayList<>();
+
+        for (CirrusBaseItemStack item : items) {
+            if (item == null) {
+                packetItems.add(ItemStack.EMPTY);
+            } else {
+                packetItems.add(toPacketEventsItemStack(item, protocolVersion));
+            }
+        }
+
+        WrapperPlayServerWindowItems packet = new WrapperPlayServerWindowItems(windowId, 0, packetItems, null);
+        user.sendPacket(packet);
+    }
+
+    private ItemStack toPacketEventsItemStack(CirrusBaseItemStack cirrusItem, int protocolVersion) {
+        CirrusItemType cirrusType = cirrusItem.itemType();
+
+        ItemType itemType = ItemTypes.getByName(cirrusType.identifier());
+        if (itemType == null) {
+            log.warn("Unknown item type: {}", cirrusType.identifier());
+            return ItemStack.EMPTY;
+        }
+
+        ItemStack.Builder builder = ItemStack.builder()
+            .type(itemType)
+            .amount(cirrusItem.amount());
+
+        CirrusChatElement displayName = cirrusItem.displayName();
+        if (displayName != null && !displayName.isEmpty()) {
+            Component nameComponent = ComponentHelper.removeItalic(displayName.asComponent());
+            builder.component(ComponentTypes.CUSTOM_NAME, nameComponent);
+        }
+
+        List<CirrusChatElement> lore = cirrusItem.lore();
+        if (lore != null && !lore.isEmpty()) {
+            List<Component> loreComponents = lore.stream()
+                .map(element -> ComponentHelper.removeItalic(element.asComponent()))
+                .toList();
+            builder.component(ComponentTypes.LORE, new ItemLore(loreComponents));
+        }
+
+        CompoundTag nbtData = cirrusItem.nbtData();
+        if (nbtData != null && !nbtData.keySet().isEmpty()) {
+            NBTCompound peNbt = convertNbt(nbtData);
+            if (peNbt != null && !peNbt.getTags().isEmpty()) {
+                builder.component(ComponentTypes.CUSTOM_DATA, peNbt);
+            }
+        }
+
+        return builder.build();
+    }
+
+    private NBTCompound convertNbt(CompoundTag querz) {
+        if (querz == null) {
+            return null;
+        }
+        NBTCompound result = new NBTCompound();
+        for (String key : querz.keySet()) {
+            Tag<?> tag = querz.get(key);
+            NBT peTag = convertTag(tag);
+            if (peTag != null) {
+                result.setTag(key, peTag);
+            }
+        }
+        return result;
+    }
+
+    private NBT convertTag(Tag<?> tag) {
+        if (tag == null) {
+            return null;
+        }
+
+        return switch (tag.getID()) {
+            case 1 -> new NBTByte(((ByteTag) tag).asByte());
+            case 2 -> new NBTShort(((ShortTag) tag).asShort());
+            case 3 -> new NBTInt(((IntTag) tag).asInt());
+            case 4 -> new NBTLong(((LongTag) tag).asLong());
+            case 5 -> new NBTFloat(((FloatTag) tag).asFloat());
+            case 6 -> new NBTDouble(((DoubleTag) tag).asDouble());
+            case 7 -> new NBTByteArray(((ByteArrayTag) tag).getValue());
+            case 8 -> new NBTString(((StringTag) tag).getValue());
+            case 9 -> convertListTag((ListTag<?>) tag);
+            case 10 -> convertNbt((CompoundTag) tag);
+            case 11 -> new NBTIntArray(((IntArrayTag) tag).getValue());
+            case 12 -> new NBTLongArray(((LongArrayTag) tag).getValue());
+            default -> null;
+        };
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private NBTList convertListTag(ListTag<?> listTag) {
+        NBTList result = new NBTList(NBTType.COMPOUND);
+
+        for (Object element : listTag) {
+            NBT converted = convertTag((Tag<?>) element);
+            if (converted != null) {
+                result.addTag(converted);
+            }
+        }
+        return result;
+    }
+
+    private Long generateID() {
+        long id = 0;
+        while (usedIDs.contains(id)) {
+            id++;
+        }
+        usedIDs.add(id);
+        return id;
+    }
 }

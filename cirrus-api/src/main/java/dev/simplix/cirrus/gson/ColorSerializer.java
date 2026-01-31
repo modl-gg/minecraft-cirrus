@@ -1,6 +1,9 @@
 package dev.simplix.cirrus.gson;
 
-import com.google.gson.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import dev.simplix.cirrus.Cirrus;
 import dev.simplix.cirrus.service.ColorConvertService;
 import java.awt.Color;
@@ -9,10 +12,10 @@ import java.util.Objects;
 
 public class ColorSerializer implements JsonSerializer<Color> {
 
-  @Override
-  public JsonElement serialize(Color src, Type typeOfSrc, JsonSerializationContext context) {
-    return new JsonPrimitive(Objects
-        .requireNonNull(Cirrus.service(ColorConvertService.class))
-        .colorToString(src));
-  }
+    @Override
+    public JsonElement serialize(Color src, Type typeOfSrc, JsonSerializationContext context) {
+        return new JsonPrimitive(Objects
+            .requireNonNull(Cirrus.service(ColorConvertService.class))
+            .colorToString(src));
+    }
 }

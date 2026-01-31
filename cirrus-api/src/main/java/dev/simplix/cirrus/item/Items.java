@@ -4,106 +4,67 @@ import dev.simplix.cirrus.color.StandardColorConfiguration;
 import dev.simplix.cirrus.effects.SpectrumEffect;
 import dev.simplix.cirrus.effects.WaveEffect;
 import dev.simplix.cirrus.menus.AbstractBrowser;
-import dev.simplix.protocolize.api.chat.ChatElement;
-import dev.simplix.protocolize.data.ItemType;
-
+import dev.simplix.cirrus.text.CirrusChatElement;
 import java.awt.Color;
-
 import lombok.experimental.UtilityClass;
 
-/**
- * The Items class is a utility class that provides methods for creating menu items with special
- * effects that make use of the accent colors defined in the `StandardColorConfiguration` class.
- *
- * @see dev.simplix.cirrus.effects
- * @see dev.simplix.cirrus.color.StandardColorConfiguration
- */
 @UtilityClass
 public class Items {
 
-    /**
-     * Creates a "Previous page" navigation item for browser menus.
-     *
-     * @param browser the browser to create the item for
-     * @return a CirrusItem configured as a previous page button
-     */
+    private static final CirrusItemType LIME_DYE = CirrusItemType.of("minecraft:lime_dye");
+    private static final CirrusItemType GRAY_DYE = CirrusItemType.of("minecraft:gray_dye");
+
     public CirrusItem previousPageItem(AbstractBrowser<?> browser) {
         final int totalPages = browser.totalPages();
         final int previous = browser.previousPageNumber();
 
         if (browser.hasPreviousPage()) {
             return CirrusItem
-                    .of(
-                            ItemType.LIME_DYE,
-                            ChatElement.ofLegacyText("§aPrevious page"),
-                            ChatElement.ofLegacyText("§7Click to go to the previous page"),
-                            ChatElement.ofLegacyText("§7Goto page §8" + previous + " §7of §8" + totalPages)
-                    )
-                    .actionHandler(AbstractBrowser.PREVIOUS_PAGE_ACTION_HANDLER);
+                .of(
+                    LIME_DYE,
+                    CirrusChatElement.ofLegacyText("§aPrevious page"),
+                    CirrusChatElement.ofLegacyText("§7Click to go to the previous page"),
+                    CirrusChatElement.ofLegacyText("§7Goto page §8" + previous + " §7of §8" + totalPages)
+                )
+                .actionHandler(AbstractBrowser.PREVIOUS_PAGE_ACTION_HANDLER);
         } else {
             return CirrusItem.of(
-                    ItemType.GRAY_DYE,
-                    ChatElement.ofLegacyText("§aPrevious page"),
-                    ChatElement.ofLegacyText("§7There is no previous page"));
+                GRAY_DYE,
+                CirrusChatElement.ofLegacyText("§aPrevious page"),
+                CirrusChatElement.ofLegacyText("§7There is no previous page"));
         }
     }
 
-    /**
-     * Creates a "Next page" navigation item for browser menus.
-     *
-     * @param browser the browser to create the item for
-     * @return a CirrusItem configured as a next page button
-     */
     public CirrusItem nextPageItem(AbstractBrowser<?> browser) {
         final int totalPages = browser.totalPages();
         final int nextPageNumber = browser.nextPageNumber();
 
         if (browser.hasNextPage()) {
             return CirrusItem.of(
-                    ItemType.LIME_DYE,
-                    ChatElement.ofLegacyText("§aNext page"),
-                    ChatElement.ofLegacyText("§7Click to go to the next page"),
-                    ChatElement.ofLegacyText("§7Goto page §8" + nextPageNumber + " §7of §8" + totalPages)
+                LIME_DYE,
+                CirrusChatElement.ofLegacyText("§aNext page"),
+                CirrusChatElement.ofLegacyText("§7Click to go to the next page"),
+                CirrusChatElement.ofLegacyText("§7Goto page §8" + nextPageNumber + " §7of §8" + totalPages)
             ).actionHandler(AbstractBrowser.NEXT_PAGE_ACTION_HANDLER);
         } else {
             return CirrusItem.of(
-                    ItemType.GRAY_DYE,
-                    ChatElement.ofLegacyText("§aNext page"),
-                    ChatElement.ofLegacyText("§7There is no next page"));
+                GRAY_DYE,
+                CirrusChatElement.ofLegacyText("§aNext page"),
+                CirrusChatElement.ofLegacyText("§7There is no next page"));
         }
     }
 
-    /**
-     * Creates a  {@link CirrusItem} with the  {@link SpectrumEffect}` applied to the item's name. The
-     * {@link SpectrumEffect} animates the color of the item name using the accent colors defined in
-     * {@link StandardColorConfiguration}
-     *
-     * @param itemType The type of the item
-     * @param name     The name of the item
-     * @param lores    The descriptive text displayed below the item name
-     * @return A `CirrusItem` with the `SpectrumEffect` applied to the item's name
-     */
-    public CirrusItem withSpectrumEffect(ItemType itemType, String name, ChatElement<?>... lores) {
+    public CirrusItem withSpectrumEffect(CirrusItemType itemType, String name, CirrusChatElement... lores) {
         SpectrumEffect animation = SpectrumEffect.fat(
-                name,
-                StandardColorConfiguration.firstColor,
-                StandardColorConfiguration.accentColor);
+            name,
+            StandardColorConfiguration.firstColor,
+            StandardColorConfiguration.accentColor);
         return CirrusItem.of(itemType, animation, lores);
     }
 
-    /**
-     * Creates a {@link CirrusItem} with the {@link WaveEffect} applied to the item's name. The
-     * {@link WaveEffect} animates the color of the item name in a wave-like pattern between white and
-     * the accent color defined in {@link StandardColorConfiguration}
-     *
-     * @param itemType The type of the item
-     * @param name     The name of the item
-     * @param lores    The descriptive text displayed below the item name
-     * @return A {@link CirrusItem} with the {@link WaveEffect} applied to the item's name
-     */
-    public CirrusItem withWaveEffect(ItemType itemType, String name, ChatElement<?>... lores) {
+    public CirrusItem withWaveEffect(CirrusItemType itemType, String name, CirrusChatElement... lores) {
         WaveEffect animation = WaveEffect
-                .fat(name, Color.WHITE, StandardColorConfiguration.accentColor);
+            .fat(name, Color.WHITE, StandardColorConfiguration.accentColor);
         return CirrusItem.of(itemType, animation, lores);
     }
 }

@@ -6,15 +6,15 @@ import java.util.List;
 
 public class SimpleChangingItemEffect extends AbstractChangingItemEffect {
 
-  private final List<CirrusItem> values;
+    private final List<CirrusItem> values;
 
-  protected SimpleChangingItemEffect(CirrusItem basis, List<CirrusItem> values, int effectLength) {
-    super(basis, effectLength);
-    this.values = values;
-  }
+    protected SimpleChangingItemEffect(CirrusItem basis, List<CirrusItem> values, int effectLength) {
+        super(basis, effectLength);
+        this.values = values;
+    }
 
-  @Override
-  public List<CirrusItem> calculate() {
-    return this.values;
-  }
+    @Override
+    public List<CirrusItem> calculate() {
+        return this.values;
+    }
 }

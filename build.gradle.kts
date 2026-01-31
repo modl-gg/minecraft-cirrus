@@ -2,12 +2,13 @@ plugins {
     id("java")
 }
 
-group = "dev.simplix.cirrus"
+group = "gg.modl.minecraft.cirrus"
 version = "3.0.0-SNAPSHOT"
 
 allprojects {
-    apply(plugin = "java") // Needed to set javac arguments
+    apply(plugin = "java")
     apply(plugin = "maven-publish")
+
     java {
         toolchain.languageVersion.set(JavaLanguageVersion.of(17))
         disableAutoTargetJvm()
@@ -24,34 +25,14 @@ allprojects {
     }
 
     repositories {
-        mavenLocal()
         mavenCentral()
         maven(url = "https://libraries.minecraft.net")
         maven(url = "https://jitpack.io")
-        maven(url = "https://mvn.exceptionflug.de/repository/exceptionflug-public/")
-    }
-
-    sourceSets {
-        main {
-            java {
-
-                if (System.getenv()["simplix.dev"] == "on") {
-                    return@java
-                }
-                println("Removing plugin-specifics for ${project.name}")
-                exclude("dev/simplix/cirrus/spigot/plugin/CirrusSpigotPlugin.java")
-                exclude("dev/simplix/cirrus/bungee/plugin/CirrusBungeePlugin/**")
-                exclude("dev/simplix/cirrus/velocity/plugin/CirrusVelocityPlugin/**")
-            }
-            resources {
-                if (System.getenv()["simplix.dev"] == "on") {
-                    return@resources
-                }
-                exclude { file ->
-                    file.name.endsWith(".yml")
-                }
-            }
-        }
+        maven(url = "https://repo.codemc.io/repository/maven-releases/")
+        maven(url = "https://repo.codemc.io/repository/maven-snapshots/")
+        maven(url = "https://repo.papermc.io/repository/maven-public/")
+        maven(url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+        maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
     }
 
     dependencies {
@@ -59,21 +40,24 @@ allprojects {
         lib("com.google.code.gson:gson:2.10")
         lib("org.slf4j:slf4j-api:1.8.0-beta4")
 
-        lib("dev.simplix:protocolize-api:2.4.3")
         lib("com.mojang:authlib:1.5.21")
 
         annotationProcessor("org.projectlombok:lombok:1.18.24")
         testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
         testCompileOnly("org.projectlombok:lombok:1.18.24")
+
         testImplementation("org.slf4j:slf4j-api:1.8.0-beta4")
+
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
     }
 
     tasks {
-        test{
+
+        test {
             useJUnitPlatform()
         }
+
         javadoc {
             options {
                 (this as CoreJavadocOptions).addStringOption("Xdoclint:none", "-quiet")
@@ -82,7 +66,30 @@ allprojects {
     }
 }
 
-//
+subprojects {
+    afterEvaluate {
+        configure<PublishingExtension> {
+            publications {
+                create<MavenPublication>("gpr") {
+                    from(components["java"])
+                    groupId = "gg.modl.minecraft.cirrus"
+                    artifactId = project.name
+                    version = project.version.toString()
+                }
+            }
+            repositories {
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/modl-gg/minecraft-cirrus")
+                    credentials {
+                        username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as String?
+                        password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.token") as String?
+                    }
+                }
+            }
+        }
+    }
+}
 
 fun DependencyHandlerScope.lib(value: String) {
     compileOnly(value)

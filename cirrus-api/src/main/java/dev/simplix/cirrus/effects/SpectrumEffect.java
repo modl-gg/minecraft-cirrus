@@ -7,7 +7,10 @@ import dev.simplix.cirrus.effect.AbstractMenuEffect;
 import dev.simplix.cirrus.service.ColorConvertService;
 import dev.simplix.cirrus.util.ToStringUtil;
 import java.awt.Color;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * The {@code SpectrumEffect} class is a menu effect that is used to create a color spectrum effect
@@ -41,112 +44,111 @@ import java.util.*;
  */
 public class SpectrumEffect extends AbstractMenuEffect<String> {
 
-  private static final ColorConvertService SERVICE = Cirrus.service(ColorConvertService.class);
+    private final List<Color> colors;
+    private String colorSuffix;
+    private double step;
+    private static final ColorConvertService SERVICE = Cirrus.service(ColorConvertService.class);
 
-  private final List<Color> colors;
-  private String colorSuffix;
-  private double step;
-
-  private SpectrumEffect(
-      String input, int effectLength, double step, String colorSuffix, List<Color> colors) {
-    super(Preconditions.checkNotNull(input, "input must not be null"), effectLength);
-    this.step = step;
-    this.colors = Preconditions.checkNotNull(colors, "colors must not be null");
-    this.colorSuffix = Preconditions.checkNotNull(colorSuffix, "colorAddon must not be null");
-    Preconditions.checkState(colors.size() >= 2, "At least 2 colors must be provided");
-  }
-
-  public static SpectrumEffect fat(String input, Color... colors) {
-    return of(input, "§l", 2, 40, colors);
-  }
-
-  public static SpectrumEffect of(
-      String input, String colorSuffix, int effectLength, double step, Color... colors) {
-    return new SpectrumEffect(input, effectLength, step, colorSuffix, Arrays.asList(colors));
-  }
-
-  public SpectrumEffect step(int step) {
-    this.step = step;
-    return this;
-  }
-
-  public SpectrumEffect colorSuffix(String colorSuffix) {
-    this.colorSuffix = colorSuffix;
-    return this;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
+    private SpectrumEffect(
+        String input, int effectLength, double step, String colorSuffix, List<Color> colors) {
+        super(Preconditions.checkNotNull(input, "input must not be null"), effectLength);
+        this.step = step;
+        this.colors = Preconditions.checkNotNull(colors, "colors must not be null");
+        this.colorSuffix = Preconditions.checkNotNull(colorSuffix, "colorAddon must not be null");
+        Preconditions.checkState(colors.size() >= 2, "At least 2 colors must be provided");
     }
 
-    SpectrumEffect that = (SpectrumEffect) o;
-
-    if (Double.compare(that.step, this.step) != 0) {
-      return false;
-    }
-    if (!this.colors.equals(that.colors)) {
-      return false;
-    }
-    return this.colorSuffix.equals(that.colorSuffix);
-  }
-
-  @Override
-  public int hashCode() {
-    int result;
-    long temp;
-    result = this.colors.hashCode();
-    result = 31 * result + this.colorSuffix.hashCode();
-    temp = Double.doubleToLongBits(this.step);
-    result = 31 * result + (int) (temp ^ (temp >>> 32));
-    return result;
-  }
-
-  /**
-   * Calculates the resulting list of colored strings by iterating over the list of colors provided
-   * to the constructor. For each color, it adds the specified number of colored strings to the
-   * output list using the color, color suffix, and input string provided to the constructor. It
-   * also calculates intermediate colors between the current color and the next color in the list
-   * and adds them to the output list in the same way. This results in a gradient.
-   *
-   * @return A list of colored strings
-   */
-  @Override
-  public List<String> calculate() {
-    final List<String> out = new ArrayList<>();
-
-    for (int i = 0; i < this.colors.size(); i++) {
-      final Color color = this.colors.get(i);
-      final int index = (this.colors.size() == i + 1) ? 0 : (i + 1);
-      final Color color2 = this.colors.get(index);
-
-      out.addAll(Collections.nCopies(
-          this.effectLength,
-          SERVICE.colorToString(color) + this.colorSuffix + this.input));
-
-      for (Color between : ColorUtil.colorsInBetween(color, color2, this.step)) {
-        out.addAll(Collections.nCopies(
-            this.effectLength,
-            SERVICE.colorToString(between) + this.colorSuffix + this.input));
-      }
+    public static SpectrumEffect fat(String input, Color... colors) {
+        return of(input, "§l", 2, 40, colors);
     }
 
-    return out;
-  }
+    public static SpectrumEffect of(
+        String input, String colorSuffix, int effectLength, double step, Color... colors) {
+        return new SpectrumEffect(input, effectLength, step, colorSuffix, Arrays.asList(colors));
+    }
 
-  @Override
-  public String toString() {
-    return ToStringUtil
-        .of(this)
-        .add("input", this.input)
-        .add("colors", this.colors)
-        .add("effectLength", this.effectLength)
-        .add("step", this.step)
-        .add("colorSuffix", this.colorSuffix)
-        .toString();
-  }
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = this.colors.hashCode();
+        result = 31 * result + this.colorSuffix.hashCode();
+        temp = Double.doubleToLongBits(this.step);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        SpectrumEffect that = (SpectrumEffect) o;
+
+        if (Double.compare(that.step, this.step) != 0) {
+            return false;
+        }
+        if (!this.colors.equals(that.colors)) {
+            return false;
+        }
+        return this.colorSuffix.equals(that.colorSuffix);
+    }
+
+    @Override
+    public String toString() {
+        return ToStringUtil
+            .of(this)
+            .add("input", this.input)
+            .add("colors", this.colors)
+            .add("effectLength", this.effectLength)
+            .add("step", this.step)
+            .add("colorSuffix", this.colorSuffix)
+            .toString();
+    }
+
+    /**
+     * Calculates the resulting list of colored strings by iterating over the list of colors provided
+     * to the constructor. For each color, it adds the specified number of colored strings to the
+     * output list using the color, color suffix, and input string provided to the constructor. It
+     * also calculates intermediate colors between the current color and the next color in the list
+     * and adds them to the output list in the same way. This results in a gradient.
+     *
+     * @return A list of colored strings
+     */
+    @Override
+    public List<String> calculate() {
+        final List<String> out = new ArrayList<>();
+
+        for (int i = 0; i < this.colors.size(); i++) {
+            final Color color = this.colors.get(i);
+            final int index = (this.colors.size() == i + 1) ? 0 : (i + 1);
+            final Color color2 = this.colors.get(index);
+
+            out.addAll(Collections.nCopies(
+                this.effectLength,
+                SERVICE.colorToString(color) + this.colorSuffix + this.input));
+
+            for (Color between : ColorUtil.colorsInBetween(color, color2, this.step)) {
+                out.addAll(Collections.nCopies(
+                    this.effectLength,
+                    SERVICE.colorToString(between) + this.colorSuffix + this.input));
+            }
+        }
+
+        return out;
+    }
+
+    public SpectrumEffect step(int step) {
+        this.step = step;
+        return this;
+    }
+
+    public SpectrumEffect colorSuffix(String colorSuffix) {
+        this.colorSuffix = colorSuffix;
+        return this;
+    }
 }

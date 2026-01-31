@@ -1,30 +1,10 @@
 plugins {
     id("java")
-    // https://github.com/johnrengelman/shadow
-    id("com.github.johnrengelman.shadow") version "7.0.0"
-    // https://github.com/jpenilla/run-paper
-    id("xyz.jpenilla.run-paper") version "2.0.0"
-    // Authenticated Maven publishing
-    id("org.hibernate.build.maven-repo-auth") version "3.0.3"
+    id("com.gradleup.shadow") version "9.3.1"
 }
 
-group = "dev.simplix.cirrus"
+group = "gg.modl.minecraft.cirrus"
 version = "3.0.0-SNAPSHOT"
-
-// publish
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-        }
-    }
-
-    repositories {
-        maven("https://mvn.exceptionflug.de/repository/exceptionflug-public/") {
-            name = "exceptionflug"
-        }
-    }
-}
 
 repositories {
     mavenCentral()
@@ -33,11 +13,15 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT")
     implementation(project(":cirrus-api"))
-    // implementation("dev.simplix:protocolize-api:2.4.2") // Needs to be shaded in this case
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+
+    // NBT library for item data conversion
+    compileOnly("com.github.Querz:NBT:6.1")
+
+    // Adventure API (provided by Paper/Spigot)
+    compileOnly("net.kyori:adventure-api:4.14.0")
+    compileOnly("net.kyori:adventure-text-serializer-gson:4.14.0")
 }
 
 java {
@@ -45,22 +29,14 @@ java {
 }
 
 tasks {
-    runServer {
-        minecraftVersion("1.17.1")
-    }
-
     assemble {
         dependsOn(shadowJar)
     }
 
     shadowJar {
-        exclude("**/registries/**")
-        relocate("net.querz", "dev.simplix.cirrus.spigot.lib")
-        relocate(
-                "dev.simplix.protocolize",
-                "dev.simplix.cirrus.spigot.lib.protocolize")
+        archiveBaseName.set("Cirrus-Spigot")
+        archiveClassifier.set("")
     }
-
 }
 
 tasks.getByName<Test>("test") {

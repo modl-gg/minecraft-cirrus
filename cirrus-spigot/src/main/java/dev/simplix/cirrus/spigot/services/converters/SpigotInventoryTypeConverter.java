@@ -1,47 +1,34 @@
 package dev.simplix.cirrus.spigot.services.converters;
 
-import dev.simplix.protocolize.data.inventory.InventoryType;
-import lombok.NonNull;
-
+import dev.simplix.cirrus.menu.CirrusInventoryType;
 import java.util.function.Function;
+import lombok.NonNull;
+import org.bukkit.event.inventory.InventoryType;
 
-public class SpigotInventoryTypeConverter implements Function<InventoryType, org.bukkit.event.inventory.InventoryType> {
+public class SpigotInventoryTypeConverter implements Function<CirrusInventoryType, InventoryType> {
 
-  @Override
-  public org.bukkit.event.inventory.InventoryType apply(@NonNull InventoryType src) {
-    switch (src) {
-
-      case ANVIL:
-        return org.bukkit.event.inventory.InventoryType.ANVIL;
-
-      case BEACON:
-        return org.bukkit.event.inventory.InventoryType.BEACON;
-
-      case BREWING_STAND:
-        return org.bukkit.event.inventory.InventoryType.BREWING;
-
-      case CRAFTING:
-        return org.bukkit.event.inventory.InventoryType.WORKBENCH;
-
-      case GENERIC_3X3:
-        return org.bukkit.event.inventory.InventoryType.DISPENSER;
-
-      case ENCHANTMENT:
-        return org.bukkit.event.inventory.InventoryType.ENCHANTING;
-
-      case FURNACE:
-        return org.bukkit.event.inventory.InventoryType.FURNACE;
-
-      case HOPPER:
-        return org.bukkit.event.inventory.InventoryType.HOPPER;
-
-      case MERCHANT:
-        return org.bukkit.event.inventory.InventoryType.MERCHANT;
-
+    @Override
+    public InventoryType apply(@NonNull CirrusInventoryType src) {
+        return switch (src) {
+            case ANVIL -> InventoryType.ANVIL;
+            case BEACON -> InventoryType.BEACON;
+            case BREWING_STAND -> InventoryType.BREWING;
+            case CRAFTING -> InventoryType.WORKBENCH;
+            case GENERIC_9X1, GENERIC_9X6, GENERIC_9X5, GENERIC_9X4, GENERIC_9X3, GENERIC_9X2 -> InventoryType.CHEST;
+            case GENERIC_3X3 -> InventoryType.DISPENSER;
+            case ENCHANTMENT -> InventoryType.ENCHANTING;
+            case FURNACE -> InventoryType.FURNACE;
+            case HOPPER -> InventoryType.HOPPER;
+            case MERCHANT -> InventoryType.MERCHANT;
+            case BLAST_FURNACE -> InventoryType.BLAST_FURNACE;
+            case GRINDSTONE -> InventoryType.GRINDSTONE;
+            case LECTERN -> InventoryType.LECTERN;
+            case LOOM -> InventoryType.LOOM;
+            case SHULKER_BOX -> InventoryType.SHULKER_BOX;
+            case SMITHING -> InventoryType.SMITHING;
+            case SMOKER -> InventoryType.SMOKER;
+            case CARTOGRAPHY -> InventoryType.CARTOGRAPHY;
+            case STONECUTTER -> InventoryType.STONECUTTER;
+        };
     }
-    if (src.name().startsWith("GENERIC")) {
-      return org.bukkit.event.inventory.InventoryType.CHEST;
-    }
-    return null;
-  }
 }

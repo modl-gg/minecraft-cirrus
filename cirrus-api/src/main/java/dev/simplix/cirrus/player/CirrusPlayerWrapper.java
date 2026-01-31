@@ -5,13 +5,13 @@ import java.util.UUID;
 
 public interface CirrusPlayerWrapper {
 
-  UUID uuid();
+    UUID uuid();
 
-  <T> T handle();
+    <T> T handle();
 
-  int protocolVersion();
+    int protocolVersion();
 
-  void play(SimpleSound sound);
+    void play(SimpleSound sound);
 
-  void sendMessage(String message);
+    void sendMessage(String message);
 }

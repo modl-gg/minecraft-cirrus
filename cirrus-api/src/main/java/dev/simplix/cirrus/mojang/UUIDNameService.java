@@ -8,39 +8,39 @@ import java.util.UUID;
  */
 public class UUIDNameService {
 
-  public void saveUUIDAndName(UUID uuid, String name) {
-    //UUID
-//    StorageManager.getPlayerData().set(uuid.toString(), name);
-  }
-
-  public Optional<String> getName(UUID uuid) {
-
-    //Not yet set
-    //Getting from Mojang & Setting it manually
-    String name = UUIDFetcher.getName(uuid);
-    if (name == null) {
-      return Optional.empty();
+    public void saveUUIDAndName(UUID uuid, String name) {
+        //UUID
+        //    StorageManager.getPlayerData().set(uuid.toString(), name);
     }
 
-//    StorageManager.getPlayerData().set(uuid.toString(), name);
+    public Optional<String> getName(UUID uuid) {
 
-    return Optional.of(name);
-  }
+        //Not yet set
+        //Getting from Mojang & Setting it manually
+        String name = UUIDFetcher.getName(uuid);
+        if (name == null) {
+            return Optional.empty();
+        }
 
-  public Optional<UUID> getUUID(String name) {
+        //    StorageManager.getPlayerData().set(uuid.toString(), name);
 
-//    for (val entry : StorageManager.getPlayerData().getFileData().toMap().entrySet()) {
-//      if (entry.getValue().equals(name)) {
-//        return UUID.fromString(entry.getKey());
-//      }
-//    }
+        return Optional.of(name);
+    }
 
-    //Not yet set.
-    //Getting from Mojang & Setting it manually.
-    UUID uuid = UUIDFetcher.getUUID(name);
+    public Optional<UUID> getUUID(String name) {
 
-//    StorageManager.getPlayerData().set(uuid.toString(), name);
-    return Optional.ofNullable(uuid);
-  }
+        //    for (val entry : StorageManager.getPlayerData().getFileData().toMap().entrySet()) {
+        //      if (entry.getValue().equals(name)) {
+        //        return UUID.fromString(entry.getKey());
+        //      }
+        //    }
+
+        //Not yet set.
+        //Getting from Mojang & Setting it manually.
+        UUID uuid = UUIDFetcher.getUUID(name);
+
+        //    StorageManager.getPlayerData().set(uuid.toString(), name);
+        return Optional.ofNullable(uuid);
+    }
 
 }

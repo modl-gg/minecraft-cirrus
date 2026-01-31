@@ -4,12 +4,12 @@ import java.awt.Color;
 
 public interface ColorConvertService {
 
-  String colorToString(Color color);
+    String colorToString(Color color);
 
-  /**
-   * @param hexColor e.g. #FFFFFF
-   * @return Color
-   */
-  Color stringToColor(String hexColor);
+    /**
+     * @param hexColor e.g. #FFFFFF
+     * @return Color
+     */
+    Color stringToColor(String hexColor);
 
 }
