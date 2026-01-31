@@ -12,7 +12,6 @@ import dev.simplix.cirrus.text.CirrusChatElement;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import net.querz.nbt.tag.CompoundTag;
 
 public class CirrusItemDeserializer implements JsonDeserializer<CirrusItem> {
 
@@ -29,10 +28,6 @@ public class CirrusItemDeserializer implements JsonDeserializer<CirrusItem> {
         final byte amount = asJsonObject.get("amount").getAsByte();
         final short durability = asJsonObject.get("durability").getAsShort();
         final int hideflags = asJsonObject.get("hide-flags").getAsInt();
-        final JsonElement nbtRaw = asJsonObject.get("nbt");
-        final CompoundTag nbt = nbtRaw == null || nbtRaw.isJsonNull()
-                                ? new CompoundTag()
-                                : context.deserialize(nbtRaw, CompoundTag.class);
 
         final AbstractMenuEffect<String> effect = asJsonObject.get("display-name-effect") != null
                                                   ? context.deserialize(asJsonObject.get("display-name-effect"), AbstractMenuEffect.class)
@@ -57,7 +52,6 @@ public class CirrusItemDeserializer implements JsonDeserializer<CirrusItem> {
 
         CirrusItem item = new CirrusItem(type)
             .amount(amount)
-            .nbtData(nbt)
             .displayNameEffect(effect)
             .durability(durability)
             .hideFlags(hideflags)

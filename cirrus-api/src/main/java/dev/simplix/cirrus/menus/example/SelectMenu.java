@@ -1,10 +1,10 @@
 package dev.simplix.cirrus.menus.example;
 
 import dev.simplix.cirrus.actionhandler.ActionHandlers;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import dev.simplix.cirrus.item.CirrusItemType;
 import dev.simplix.cirrus.item.Items;
 import dev.simplix.cirrus.menus.SimpleMenu;
-import dev.simplix.cirrus.protocol.CirrusProtocolVersions;
 import dev.simplix.cirrus.text.CirrusChatElement;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,7 +37,7 @@ public class SelectMenu extends SimpleMenu {
         registerActionHandler("next", ActionHandlers.openMenu(new NextMenu()));
         registerActionHandler(
             "browser",
-            ActionHandlers.openMenu(new ItemTypeBrowser(CirrusProtocolVersions.MINECRAFT_1_17)));
+            ActionHandlers.openMenu(new ItemTypeBrowser(ClientVersion.V_1_17.getProtocolVersion())));
     }
 
     @Override

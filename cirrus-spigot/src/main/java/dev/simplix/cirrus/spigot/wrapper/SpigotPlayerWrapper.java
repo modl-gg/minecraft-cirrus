@@ -1,9 +1,9 @@
 package dev.simplix.cirrus.spigot.wrapper;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import dev.simplix.cirrus.Utils;
 import dev.simplix.cirrus.model.SimpleSound;
 import dev.simplix.cirrus.player.CirrusPlayerWrapper;
-import dev.simplix.cirrus.spigot.util.ProtocolVersionUtil;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Sound;
@@ -27,7 +27,7 @@ public class SpigotPlayerWrapper implements CirrusPlayerWrapper {
 
     @Override
     public int protocolVersion() {
-        return ProtocolVersionUtil.serverProtocolVersion();
+        return PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion();
     }
 
     @Override

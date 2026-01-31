@@ -1,114 +1,25 @@
 package dev.simplix.cirrus.spigot.menubuilder;
 
-import dev.simplix.cirrus.Cirrus;
-import dev.simplix.cirrus.menu.CirrusInventoryType;
-import dev.simplix.cirrus.menu.DisplayedMenu;
-import dev.simplix.cirrus.menu.Menu;
-import dev.simplix.cirrus.menu.Menus;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.player.User;
+import dev.simplix.cirrus.common.service.AbstractPacketMenuBuildService;
 import dev.simplix.cirrus.player.CirrusPlayerWrapper;
-import dev.simplix.cirrus.service.MenuBuildService;
-import dev.simplix.cirrus.spigot.services.converters.ItemStackConverter;
-import dev.simplix.cirrus.spigot.services.converters.SpigotInventoryTypeConverter;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.RequiredArgsConstructor;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
 
 @Slf4j
-@RequiredArgsConstructor
-public class SpigotMenuBuildService implements MenuBuildService {
-
-    private final JavaPlugin plugin;
-
-    private final Set<Long> usedIDs = new HashSet<>();
+public class SpigotMenuBuildService extends AbstractPacketMenuBuildService {
 
     @Override
-    public DisplayedMenu openAndBuildMenu0(Menu menu, CirrusPlayerWrapper playerWrapper) {
+    protected User getUser(CirrusPlayerWrapper playerWrapper) {
         Player player = playerWrapper.handle();
-
-        InventoryView inventoryView = makeView(menu, player);
-        Inventory top = inventoryView.getTopInventory();
-        buildMenuIntoInventory(top, menu);
-        player.openInventory(top);
-
-        final long id = generateID();
-
-        return new DisplayedMenu(
-            menu,
-            inventoryView,
-            playerWrapper,
-            this,
-            id);
+        return PacketEvents.getAPI().getPlayerManager().getUser(player);
     }
 
     @Override
-    public void updateMenu(DisplayedMenu displayedMenu) {
-        InventoryView inventoryView = (InventoryView) displayedMenu.nativeMenu();
-        Inventory top = inventoryView.getTopInventory();
-
-        if (top.getSize() == displayedMenu
-            .value()
-            .type()
-            .size()) {
-            buildMenuIntoInventory(top, displayedMenu.value());
-        } else {
-            buildAndOpenMenu(displayedMenu.value(), displayedMenu.player());
-        }
-    }
-
-    @Override
-    public void closeMenu0(DisplayedMenu displayedMenu) {
-        Menus.remove(displayedMenu.player().uuid());
-        if (displayedMenu.player().handle() instanceof Player player) {
-            player.closeInventory();
-        }
-    }
-
-    public void buildMenuIntoInventory(Inventory inventory, Menu menu) {
-        menu.rootItems().forEach((slot, item) -> {
-            ItemStack apply = Cirrus.service(ItemStackConverter.class).apply(item);
-            inventory.setItem(slot, apply);
-        });
-    }
-
-    private InventoryView makeView(Menu menu, Player player) {
-        Inventory result;
-        Inventory bottom = player.getInventory();
-        if (isChest(menu.type())) {
-            result = Bukkit.createInventory(
-                player,
-                menu.type().size(),
-                menu.title()
-            );
-        } else {
-            result = Bukkit.createInventory(
-                player,
-                Cirrus.service(SpigotInventoryTypeConverter.class).apply(menu.type()),
-                menu.title());
-        }
-
-        return new ModernInventoryView(menu, player, result, bottom);
-    }
-
-    private static boolean isChest(CirrusInventoryType type) {
-        if (type == CirrusInventoryType.GENERIC_3X3) {
-            return false;
-        }
-        return type.name().startsWith("GENERIC");
-    }
-
-    private long generateID() {
-        long id = 0;
-        while (usedIDs.contains(id)) {
-            id++;
-        }
-        usedIDs.add(id);
-        return id;
+    protected UUID getPlayerUuid(CirrusPlayerWrapper playerWrapper) {
+        Player player = playerWrapper.handle();
+        return player.getUniqueId();
     }
 }

@@ -1,5 +1,12 @@
 package dev.simplix.cirrus;
 
+import com.github.retrooper.packetevents.protocol.nbt.NBT;
+import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import com.github.retrooper.packetevents.protocol.nbt.NBTInt;
+import com.github.retrooper.packetevents.protocol.nbt.NBTList;
+import com.github.retrooper.packetevents.protocol.nbt.NBTShort;
+import com.github.retrooper.packetevents.protocol.nbt.NBTString;
+import com.github.retrooper.packetevents.protocol.nbt.NBTType;
 import dev.simplix.cirrus.menu.CirrusInventoryType;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +14,6 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.querz.nbt.tag.*;
 
 @UtilityClass
 public class Utils {
@@ -77,58 +83,58 @@ public class Utils {
         return name.replace("&", "§");
     }
 
-    public static void glow(CompoundTag tag) {
+    public static void glow(NBTCompound tag) {
         hideNbtFlags(tag);
 
-        final ListTag<CompoundTag> enchantments = new ListTag<>(CompoundTag.class);
-        final ListTag<CompoundTag> enchs = new ListTag<>(CompoundTag.class);
+        NBTList<NBTCompound> enchantments = new NBTList<>(NBTType.COMPOUND);
+        NBTList<NBTCompound> enchs = new NBTList<>(NBTType.COMPOUND);
 
-        final CompoundTag exampleEnchantment = new CompoundTag();
+        NBTCompound exampleEnchantment = new NBTCompound();
+        exampleEnchantment.setTag("id", new NBTString("minecraft:efficiency"));
+        exampleEnchantment.setTag("lvl", new NBTShort((short) 1));
 
-        exampleEnchantment.put("id", new StringTag("minecraft:efficiency"));
-        exampleEnchantment.put("lvl", new ShortTag((short) 1));
+        NBTCompound exampleEnch = new NBTCompound();
+        exampleEnch.setTag("id", new NBTShort((short) 1));
+        exampleEnch.setTag("lvl", new NBTShort((short) 1));
 
-        final CompoundTag exampleEnch = new CompoundTag();
-        exampleEnch.put("id", new ShortTag((short) 1));
-        exampleEnch.put("lvl", new ShortTag((short) 1));
+        enchantments.addTag(exampleEnchantment);
+        enchs.addTag(exampleEnch);
 
-        enchantments.add(exampleEnchantment);
-        enchs.add(exampleEnch);
-
-        tag.put("ench", enchs);
-        tag.put("Enchantments", enchantments);
+        tag.setTag("ench", enchs);
+        tag.setTag("Enchantments", enchantments);
     }
 
-    public static void hideNbtFlags(CompoundTag tag) {
-        tag.put("HideFlags", new IntTag(127));
+    public static void hideNbtFlags(NBTCompound tag) {
+        tag.setTag("HideFlags", new NBTInt(127));
     }
 
-    public static void texture(CompoundTag tag, String textureHash) {
-        if (!(tag.get("SkullOwner") instanceof CompoundTag)) {
-            tag.put("SkullOwner", new CompoundTag());
+    public static void texture(NBTCompound tag, String textureHash) {
+        NBT skullOwnerRaw = tag.getTags().get("SkullOwner");
+        NBTCompound skullOwner;
+        if (!(skullOwnerRaw instanceof NBTCompound)) {
+            skullOwner = new NBTCompound();
+        } else {
+            skullOwner = (NBTCompound) skullOwnerRaw;
         }
 
-        CompoundTag skullOwner = tag.getCompoundTag("SkullOwner");
+        skullOwner.setTag("Name", new NBTString(textureHash));
 
-        if (skullOwner == null) {
-            skullOwner = new CompoundTag();
+        NBT propertiesRaw = skullOwner.getTags().get("Properties");
+        NBTCompound properties;
+        if (!(propertiesRaw instanceof NBTCompound)) {
+            properties = new NBTCompound();
+        } else {
+            properties = (NBTCompound) propertiesRaw;
         }
 
-        skullOwner.put("Name", new StringTag(textureHash));
-        CompoundTag properties = skullOwner.getCompoundTag("Properties");
-        if (properties == null) {
-            properties = new CompoundTag();
-        }
+        NBTCompound texture = new NBTCompound();
+        texture.setTag("Value", new NBTString(textureHash.isEmpty() ? STEVE_TEXTURE : textureHash));
 
-        CompoundTag texture = new CompoundTag();
-        texture.put(
-            "Value",
-            new StringTag(textureHash.isEmpty() ? STEVE_TEXTURE : textureHash));
-        ListTag<CompoundTag> textures = new ListTag<>(CompoundTag.class);
-        textures.add(texture);
-        properties.put("textures", textures);
-        skullOwner.put("Properties", properties);
-        tag.put("SkullOwner", skullOwner);
+        NBTList<NBTCompound> textures = new NBTList<>(NBTType.COMPOUND);
+        textures.addTag(texture);
 
+        properties.setTag("textures", textures);
+        skullOwner.setTag("Properties", properties);
+        tag.setTag("SkullOwner", skullOwner);
     }
 }

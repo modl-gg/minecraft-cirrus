@@ -1,11 +1,11 @@
 package dev.simplix.cirrus.item;
 
+import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import dev.simplix.cirrus.text.CirrusChatElement;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.NonNull;
-import net.querz.nbt.tag.CompoundTag;
 
 public interface CirrusBaseItemStack {
 
@@ -23,7 +23,7 @@ public interface CirrusBaseItemStack {
     List<CirrusChatElement> lore();
 
     @Nullable
-    CompoundTag nbtData();
+    NBTCompound nbtData();
 
     int hideFlags();
 

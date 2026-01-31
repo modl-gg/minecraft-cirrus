@@ -1,5 +1,6 @@
 package dev.simplix.cirrus.gson;
 
+import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -12,7 +13,6 @@ import dev.simplix.cirrus.text.CirrusChatElement;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import net.querz.nbt.tag.CompoundTag;
 
 public class ItemStackDeserializer implements JsonDeserializer<CirrusBaseItemStack> {
 
@@ -28,10 +28,6 @@ public class ItemStackDeserializer implements JsonDeserializer<CirrusBaseItemSta
         final int amount = asJsonObject.get("amount").getAsInt();
         final short durability = asJsonObject.get("durability").getAsShort();
         final int hideflags = asJsonObject.get("hide-flags").getAsInt();
-        final JsonElement nbtRaw = asJsonObject.get("nbt");
-        final CompoundTag nbt = nbtRaw == null || nbtRaw.isJsonNull()
-                                ? new CompoundTag()
-                                : context.deserialize(nbtRaw, CompoundTag.class);
         final String displayName = asJsonObject.get("display-name") != null
                                    ? asJsonObject.get("display-name").getAsString()
                                    : "";
@@ -42,7 +38,7 @@ public class ItemStackDeserializer implements JsonDeserializer<CirrusBaseItemSta
 
         final CirrusItem item = new CirrusItem(type, (byte) amount, durability)
             .displayName(CirrusChatElement.ofLegacyText(displayName))
-            .nbtData(nbt)
+            .nbtData(new NBTCompound())
             .hideFlags(hideflags);
 
         if (loreStrings != null) {

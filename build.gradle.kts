@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "3.0.0-SNAPSHOT"
+version = "4.0.0-SNAPSHOT"
 
 allprojects {
     apply(plugin = "java")

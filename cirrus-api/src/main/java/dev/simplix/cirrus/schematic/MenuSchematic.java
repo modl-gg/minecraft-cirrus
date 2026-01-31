@@ -11,7 +11,7 @@ import dev.simplix.cirrus.model.BusinessItemMap;
 import dev.simplix.cirrus.model.MenuContent;
 import dev.simplix.cirrus.model.PlaceholderItem;
 import dev.simplix.cirrus.model.SimpleSound;
-import dev.simplix.cirrus.protocol.CirrusProtocolVersions;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -186,7 +186,7 @@ public interface MenuSchematic {
      * @return typical size of the menu
      */
     default int typicalSize() {
-        return typicalSize(CirrusProtocolVersions.MINECRAFT_LATEST);
+        return typicalSize(ClientVersion.V_1_21_4.getProtocolVersion());
     }
 
     /**

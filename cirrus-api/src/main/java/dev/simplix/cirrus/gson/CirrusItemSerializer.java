@@ -45,7 +45,6 @@ public class CirrusItemSerializer implements JsonSerializer<CirrusItem> {
         jsonObject.add("amount", new JsonPrimitive(src.amount()));
         jsonObject.add("durability", new JsonPrimitive(src.durability()));
         jsonObject.add("hide-flags", new JsonPrimitive(src.hideFlags()));
-        jsonObject.add("nbt", context.serialize(src.nbtData()));
 
         jsonObject.add(
             "action-handler",

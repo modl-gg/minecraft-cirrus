@@ -1,5 +1,6 @@
 package dev.simplix.cirrus.item;
 
+import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import dev.simplix.cirrus.Utils;
 import dev.simplix.cirrus.effect.AbstractMenuEffect;
 import dev.simplix.cirrus.text.CirrusChatElement;
@@ -16,7 +17,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.querz.nbt.tag.CompoundTag;
 
 @Getter
 @Setter
@@ -28,7 +28,7 @@ public class CirrusItem implements CirrusBaseItemStack {
     protected short durability;
     protected CirrusChatElement displayName;
     protected List<CirrusChatElement> lore;
-    protected CompoundTag nbtData;
+    protected NBTCompound nbtData;
     protected int hideFlags;
     protected Set<ItemFlag> itemFlags;
 
@@ -58,7 +58,7 @@ public class CirrusItem implements CirrusBaseItemStack {
         this.durability = durability;
         this.displayName = CirrusChatElement.empty();
         this.lore = new ArrayList<>();
-        this.nbtData = new CompoundTag();
+        this.nbtData = new NBTCompound();
         this.hideFlags = 0;
         this.itemFlags = new HashSet<>();
     }
@@ -69,7 +69,7 @@ public class CirrusItem implements CirrusBaseItemStack {
         this.durability = base.durability();
         this.displayName = base.displayName();
         this.lore = new ArrayList<>(base.lore());
-        this.nbtData = base.nbtData() != null ? base.nbtData().clone() : new CompoundTag();
+        this.nbtData = base.nbtData() != null ? cloneNbtCompound(base.nbtData()) : new NBTCompound();
         this.hideFlags = base.hideFlags();
         this.itemFlags = new HashSet<>(base.itemFlags());
     }
@@ -181,7 +181,7 @@ public class CirrusItem implements CirrusBaseItemStack {
         return this;
     }
 
-    public CirrusItem nbtData(@NonNull CompoundTag nbtData) {
+    public CirrusItem nbtData(@NonNull NBTCompound nbtData) {
         this.nbtData = nbtData;
         return this;
     }
@@ -220,7 +220,7 @@ public class CirrusItem implements CirrusBaseItemStack {
         CirrusItem clone = new CirrusItem(this.itemType, this.amount, this.durability);
         clone.displayName = this.displayName;
         clone.lore = new ArrayList<>(this.lore);
-        clone.nbtData = this.nbtData.clone();
+        clone.nbtData = cloneNbtCompound(this.nbtData);
         clone.hideFlags = this.hideFlags;
         clone.itemFlags = new HashSet<>(this.itemFlags);
         clone.actionHandler = this.actionHandler;
@@ -228,6 +228,13 @@ public class CirrusItem implements CirrusBaseItemStack {
         clone.actionArguments = new ArrayList<>(this.actionArguments);
         clone.displayNameEffect = this.displayNameEffect;
         return clone;
+    }
+
+    private static NBTCompound cloneNbtCompound(NBTCompound source) {
+        if (source == null) {
+            return new NBTCompound();
+        }
+        return (NBTCompound) source.copy();
     }
 
     @Override

@@ -17,8 +17,6 @@ import dev.simplix.cirrus.item.CirrusBaseItemStack;
 import dev.simplix.cirrus.item.CirrusItem;
 import dev.simplix.cirrus.mojang.TextureService;
 import dev.simplix.cirrus.mojang.UUIDNameService;
-import dev.simplix.cirrus.mojangson.TagDeserializer;
-import dev.simplix.cirrus.mojangson.TagSerializer;
 import dev.simplix.cirrus.service.CirrusServiceRegistry;
 import dev.simplix.cirrus.service.ColorConvertService;
 import dev.simplix.cirrus.service.ItemService;
@@ -29,7 +27,6 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
-import net.querz.nbt.tag.CompoundTag;
 
 @Slf4j
 public class Cirrus {
@@ -37,8 +34,6 @@ public class Cirrus {
     private static final Executor executor = Executors.newCachedThreadPool();
     private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
     private static final Gson GSON = new GsonBuilder()
-        .registerTypeAdapter(CompoundTag.class, new TagSerializer())
-        .registerTypeAdapter(CompoundTag.class, new TagDeserializer())
         .registerTypeAdapter(CirrusBaseItemStack.class, new ItemStackDeserializer())
         .registerTypeAdapter(CirrusBaseItemStack.class, new ItemStackSerializer())
         .registerTypeHierarchyAdapter(CirrusItem.class, new CirrusItemSerializer())

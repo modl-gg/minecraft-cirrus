@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "3.0.0-SNAPSHOT"
+version = "4.0.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -13,14 +13,12 @@ repositories {
 
 dependencies {
     implementation(project(":cirrus-api"))
+    implementation(project(":cirrus-common"))
 
     compileOnly("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
 //    annotationProcessor("com.velocitypowered:velocity-api:3.5.0-SNAPSHOT")
 
     compileOnly("com.github.retrooper:packetevents-velocity:2.11.2")
-
-    // NBT library for item data conversion
-    compileOnly("com.github.Querz:NBT:6.1")
 }
 
 tasks {

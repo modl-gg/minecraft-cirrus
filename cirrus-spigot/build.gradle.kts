@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "3.0.0-SNAPSHOT"
+version = "4.0.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -15,9 +15,9 @@ repositories {
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT")
     implementation(project(":cirrus-api"))
+    implementation(project(":cirrus-common"))
 
-    // NBT library for item data conversion
-    compileOnly("com.github.Querz:NBT:6.1")
+    compileOnly("com.github.retrooper:packetevents-spigot:2.11.2")
 
     // Adventure API (provided by Paper/Spigot)
     compileOnly("net.kyori:adventure-api:4.14.0")

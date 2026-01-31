@@ -29,7 +29,6 @@ public class ItemStackSerializer implements JsonSerializer<CirrusBaseItemStack> 
         jsonObject.add("amount", new JsonPrimitive(src.amount()));
         jsonObject.add("durability", new JsonPrimitive(src.durability()));
         jsonObject.add("hide-flags", new JsonPrimitive(src.hideFlags()));
-        jsonObject.add("nbt", context.serialize(src.nbtData()));
 
         if (src.displayName() != null && !src.displayName().isEmpty()) {
             jsonObject.add("display-name", new JsonPrimitive(src.displayName().asLegacyText()));

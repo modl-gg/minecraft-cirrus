@@ -47,11 +47,19 @@ public class InventoryTracker {
 
     public int generateWindowId(@NonNull UUID player) {
         AtomicInteger counter = windowIdCounters.computeIfAbsent(player, k -> new AtomicInteger(100));
-        int windowId = counter.incrementAndGet();
-        if (windowId > 200) {
-            counter.set(100);
+        Map<Integer, TrackedInventory> inventories = playerInventories.get(player);
+
+        int attempts = 0;
+        int windowId;
+        do {
             windowId = counter.incrementAndGet();
-        }
+            if (windowId > 200) {
+                counter.set(100);
+                windowId = counter.incrementAndGet();
+            }
+            attempts++;
+        } while (inventories != null && inventories.containsKey(windowId) && attempts < 100);
+
         return windowId;
     }
 

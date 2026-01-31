@@ -43,6 +43,52 @@ public final class CirrusItemType {
     public static final CirrusItemType ITEM_FRAME = of("minecraft:item_frame");
     public static final CirrusItemType ACACIA_BOAT = of("minecraft:acacia_boat");
 
+    // Beds
+    public static final CirrusItemType RED_BED = of("minecraft:red_bed");
+
+    // Tools & Weapons
+    public static final CirrusItemType ANVIL = of("minecraft:anvil");
+    public static final CirrusItemType BOW = of("minecraft:bow");
+    public static final CirrusItemType IRON_SWORD = of("minecraft:iron_sword");
+    public static final CirrusItemType DIAMOND_SWORD = of("minecraft:diamond_sword");
+    public static final CirrusItemType BLAZE_ROD = of("minecraft:blaze_rod");
+
+    // Armor
+    public static final CirrusItemType LEATHER_BOOTS = of("minecraft:leather_boots");
+    public static final CirrusItemType IRON_CHESTPLATE = of("minecraft:iron_chestplate");
+
+    // Dyes
+    public static final CirrusItemType LIME_DYE = of("minecraft:lime_dye");
+    public static final CirrusItemType GRAY_DYE = of("minecraft:gray_dye");
+
+    // Wool
+    public static final CirrusItemType LIME_WOOL = of("minecraft:lime_wool");
+    public static final CirrusItemType YELLOW_WOOL = of("minecraft:yellow_wool");
+    public static final CirrusItemType RED_WOOL = of("minecraft:red_wool");
+
+    // Nature & Plants
+    public static final CirrusItemType VINE = of("minecraft:vine");
+
+    // Misc Items
+    public static final CirrusItemType ENDER_EYE = of("minecraft:ender_eye");
+    public static final CirrusItemType SKELETON_SKULL = of("minecraft:skeleton_skull");
+    public static final CirrusItemType GOLDEN_APPLE = of("minecraft:golden_apple");
+    public static final CirrusItemType EXPERIENCE_BOTTLE = of("minecraft:experience_bottle");
+    public static final CirrusItemType GLASS_BOTTLE = of("minecraft:glass_bottle");
+
+    // Arrows
+    public static final CirrusItemType SPECTRAL_ARROW = of("minecraft:spectral_arrow");
+
+    // Signs
+    public static final CirrusItemType OAK_SIGN = of("minecraft:oak_sign");
+
+    // Torches
+    public static final CirrusItemType TORCH = of("minecraft:torch");
+    public static final CirrusItemType REDSTONE_TORCH = of("minecraft:redstone_torch");
+
+    // Command Blocks
+    public static final CirrusItemType COMMAND_BLOCK = of("minecraft:command_block");
+
     private CirrusItemType(@NonNull String identifier) {
         this.identifier = identifier.toLowerCase();
         if (!this.identifier.contains(":")) {
