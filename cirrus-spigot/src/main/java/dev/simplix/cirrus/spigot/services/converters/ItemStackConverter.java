@@ -6,7 +6,6 @@ import static dev.simplix.protocolize.api.util.ProtocolVersions.MINECRAFT_1_14;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import dev.simplix.cirrus.Cirrus;
-import dev.simplix.cirrus.Utils;
 import dev.simplix.cirrus.spigot.util.*;
 import dev.simplix.protocolize.api.item.BaseItemStack;
 
@@ -20,6 +19,7 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
@@ -39,18 +39,25 @@ public class ItemStackConverter implements Function<BaseItemStack, org.bukkit.in
   private static Method nmsCopyMethod;
   private static Method bukkitCopyMethod;
   private static Method setTagMethod;
+  private static boolean nbtReflectionAvailable = true;
 
   static {
     try {
       craftItemStackClass = ReflectionUtil.getClass("{obc}.inventory.CraftItemStack");
-      nbtTagCompoundClass = ReflectionClasses.nbtTagCompound();
       itemStackNMSClass = ReflectionClasses.itemStackClass();
       nmsCopyMethod = craftItemStackClass.getMethod(
           "asNMSCopy",
           org.bukkit.inventory.ItemStack.class);
       bukkitCopyMethod = craftItemStackClass.getMethod("asBukkitCopy", itemStackNMSClass);
     } catch (Exception exception) {
-      exception.printStackTrace();
+      log.warn("[Cirrus] Could not initialize CraftItemStack reflection, using fallback mode", exception);
+      nbtReflectionAvailable = false;
+    }
+    try {
+      nbtTagCompoundClass = ReflectionClasses.nbtTagCompound();
+    } catch (Exception exception) {
+      log.info("[Cirrus] NBTTagCompound not available (1.20.5+ uses Data Components), using Bukkit API");
+      nbtReflectionAvailable = false;
     }
   }
 
@@ -105,37 +112,62 @@ public class ItemStackConverter implements Function<BaseItemStack, org.bukkit.in
 
     // Finalizing the itemstack by inserting nbt material & hiding attributes
     try {
-      Object nmsItemStack = nmsCopyMethod.invoke(null, itemStack);
-      if (protocolizeItemStack.nbtData() != null && !protocolizeItemStack
-          .nbtData()
-          .keySet()
-          .isEmpty()) {
-        try {
+      ItemStack result;
 
-          Method setTag = setTagMethod();
-
-          final CompoundTag nbtTag = protocolizeItemStack.nbtData().clone();
-          if (textureHashToInsert != null) {
-            nbtTag.remove("SkullOwner");
+      if (nbtReflectionAvailable && nmsCopyMethod != null) {
+        // Traditional NMS-based NBT handling (pre-1.20.5)
+        Object nmsItemStack = nmsCopyMethod.invoke(null, itemStack);
+        if (protocolizeItemStack.nbtData() != null && !protocolizeItemStack
+            .nbtData()
+            .keySet()
+            .isEmpty()) {
+          try {
+            Method setTag = setTagMethod();
+            if (setTag != null) {
+              final CompoundTag nbtTag = protocolizeItemStack.nbtData().clone();
+              if (textureHashToInsert != null) {
+                nbtTag.remove("SkullOwner");
+              }
+              setTag.invoke(nmsItemStack, Cirrus.service(QuerzNbtNmsNbtConverter.class).apply(nbtTag));
+            }
+          } catch (Throwable throwable) {
+            log.debug("Could not set NBT tag via reflection, falling back to Bukkit API", throwable);
           }
-
-          setTag.invoke(nmsItemStack, Cirrus.service(QuerzNbtNmsNbtConverter.class).apply(nbtTag));
-        } catch (Throwable throwable) {
-          log.error("Error while setting nbt tag", throwable);
         }
+        result = (org.bukkit.inventory.ItemStack) bukkitCopyMethod.invoke(null, nmsItemStack);
+      } else {
+        // Modern Bukkit API fallback (1.20.5+)
+        result = itemStack;
       }
 
-      final ItemStack result = (org.bukkit.inventory.ItemStack) bukkitCopyMethod
-          .invoke(null, nmsItemStack);
-
       final ItemMeta itemMeta = result.getItemMeta();
-
 
       mutateMetaDataToHideAttributes(itemMeta);
 
       // Apply special 'precautions' against NMS.
       result.setType(material);
-      itemMeta.displayName((Component) protocolizeItemStack.displayName().asComponent());
+      if (protocolizeItemStack.displayName() != null && protocolizeItemStack.displayName().asComponent() != null) {
+        Component adventureComponent = convertToAdventureComponent(protocolizeItemStack.displayName().asComponent());
+        if (adventureComponent != null) {
+          itemMeta.displayName(adventureComponent);
+        }
+      }
+
+      // Set lore via Bukkit API (especially important for 1.20.5+ where NBT doesn't work)
+      if (protocolizeItemStack.lore() != null && !protocolizeItemStack.lore().isEmpty()) {
+        List<Component> adventureLore = new ArrayList<>();
+        for (var loreLine : protocolizeItemStack.lore()) {
+          if (loreLine != null && loreLine.asComponent() != null) {
+            Component loreComponent = convertToAdventureComponent(loreLine.asComponent());
+            if (loreComponent != null) {
+              adventureLore.add(loreComponent);
+            }
+          }
+        }
+        if (!adventureLore.isEmpty()) {
+          itemMeta.lore(adventureLore);
+        }
+      }
 
       // No texture-hash to insert
       if (textureHashToInsert != null && itemMeta instanceof SkullMeta skullMeta) {
@@ -150,29 +182,75 @@ public class ItemStackConverter implements Function<BaseItemStack, org.bukkit.in
     }
   }
 
-  private Method setTagMethod() throws NoSuchMethodException {
+  private Method setTagMethod() {
     if (setTagMethod != null) {
       return setTagMethod;
     }
-    Method setTag;
-    try {
-      setTag = itemStackNMSClass.getMethod("setTag", nbtTagCompoundClass);
-    } catch (NoSuchMethodException e) {
-      setTag = itemStackNMSClass.getDeclaredMethod("setTagClone", nbtTagCompoundClass);
-      setTag.setAccessible(true);
+    if (!nbtReflectionAvailable || itemStackNMSClass == null || nbtTagCompoundClass == null) {
+      return null;
     }
-    return setTagMethod = setTag;
+    try {
+      setTagMethod = itemStackNMSClass.getMethod("setTag", nbtTagCompoundClass);
+      return setTagMethod;
+    } catch (NoSuchMethodException e) {
+      try {
+        setTagMethod = itemStackNMSClass.getDeclaredMethod("setTagClone", nbtTagCompoundClass);
+        setTagMethod.setAccessible(true);
+        return setTagMethod;
+      } catch (NoSuchMethodException ex) {
+        // 1.20.5+ uses Data Components, setTag methods don't exist
+        log.debug("[Cirrus] NBT setTag methods not available, server likely uses Data Components (1.20.5+)");
+        nbtReflectionAvailable = false;
+        return null;
+      }
+    }
   }
 
   private void mutateMetaDataToHideAttributes(final ItemMeta itemMeta) {
+    // Add each flag individually with try-catch to handle version differences
+    // (e.g., HIDE_POTION_EFFECTS was renamed to HIDE_ADDITIONAL_TOOLTIP in 1.20.5+)
+    tryAddItemFlag(itemMeta, "HIDE_ENCHANTS");
+    tryAddItemFlag(itemMeta, "HIDE_ATTRIBUTES");
+    tryAddItemFlag(itemMeta, "HIDE_UNBREAKABLE");
+    tryAddItemFlag(itemMeta, "HIDE_DESTROYS");
+    tryAddItemFlag(itemMeta, "HIDE_PLACED_ON");
+    tryAddItemFlag(itemMeta, "HIDE_POTION_EFFECTS");
+    tryAddItemFlag(itemMeta, "HIDE_ADDITIONAL_TOOLTIP");
+    tryAddItemFlag(itemMeta, "HIDE_DYE");
+    tryAddItemFlag(itemMeta, "HIDE_ARMOR_TRIM");
+  }
+
+  private void tryAddItemFlag(ItemMeta itemMeta, String flagName) {
     try {
-      itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-      itemMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-      itemMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
-      itemMeta.addItemFlags(ItemFlag.HIDE_DESTROYS);
-      itemMeta.addItemFlags(ItemFlag.HIDE_PLACED_ON);
-      itemMeta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
-    } catch (Throwable ignored) {
+      ItemFlag flag = ItemFlag.valueOf(flagName);
+      itemMeta.addItemFlags(flag);
+    } catch (IllegalArgumentException ignored) {
+      // Flag doesn't exist in this version
+    }
+  }
+
+  /**
+   * Converts a BungeeCord BaseComponent (or array) to Adventure Component.
+   * Protocolize uses BungeeCord chat API, but Paper 1.16.5+ uses Adventure.
+   */
+  private Component convertToAdventureComponent(Object componentObj) {
+    try {
+      String json;
+      if (componentObj instanceof BaseComponent[] baseComponents) {
+        json = ComponentSerializer.toString(baseComponents);
+      } else if (componentObj instanceof BaseComponent baseComponent) {
+        json = ComponentSerializer.toString(baseComponent);
+      } else if (componentObj instanceof Component) {
+        // Already an Adventure component
+        return (Component) componentObj;
+      } else {
+        log.debug("[Cirrus] Unknown component type: {}", componentObj.getClass().getName());
+        return null;
+      }
+      return GsonComponentSerializer.gson().deserialize(json);
+    } catch (Exception e) {
+      log.debug("[Cirrus] Could not convert component to Adventure format", e);
+      return null;
     }
   }
 

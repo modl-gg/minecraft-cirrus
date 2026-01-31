@@ -32,6 +32,9 @@ public final class ReflectionUtil {
   private static final Map<Map.Entry<Class<?>, String>, Field> CACHED_FIELDS = new HashMap<>();
   private static final Map<String, Class<?>> CACHED_CLASSES = new HashMap<>();
 
+  private static String cachedServerVersion;
+  private static Boolean usesUnversionedPackages;
+
   public static boolean hasNewItemTypeStructure() {
     return ProtocolVersionUtil.serverProtocolVersion() >= ProtocolVersions.MINECRAFT_1_14;
   }
@@ -40,7 +43,39 @@ public final class ReflectionUtil {
     return ProtocolVersionUtil.serverProtocolVersion() >= ProtocolVersions.MINECRAFT_1_17;
   }
 
+  /**
+   * Checks if the server uses unversioned CraftBukkit packages (Paper 1.20.5+).
+   * These servers use org.bukkit.craftbukkit.* instead of org.bukkit.craftbukkit.v1_XX_RX.*
+   */
+  public static boolean hasUnversionedCraftBukkitPackages() {
+    if (usesUnversionedPackages != null) {
+      return usesUnversionedPackages;
+    }
+    try {
+      String packageString = Bukkit.getServer().getClass().getPackage().getName();
+      String[] parts = packageString.split("\\.");
+      // org.bukkit.craftbukkit = 3 parts (unversioned)
+      // org.bukkit.craftbukkit.v1_21_R1 = 4 parts (versioned)
+      usesUnversionedPackages = parts.length == 3;
+      if (usesUnversionedPackages) {
+        log.info("[Cirrus] Detected Paper 1.20.5+ with unversioned CraftBukkit packages");
+      }
+      return usesUnversionedPackages;
+    } catch (Exception e) {
+      usesUnversionedPackages = false;
+      return false;
+    }
+  }
+
   public static Class<?> getClass(String classname) throws ClassNotFoundException {
+    // Determine OBC (org.bukkit.craftbukkit) package path
+    String obcPackage;
+    if (hasUnversionedCraftBukkitPackages()) {
+      obcPackage = "org.bukkit.craftbukkit";
+    } else {
+      obcPackage = "org.bukkit.craftbukkit." + serverVersion();
+    }
+
     String path = classname
         .replace(
             "{nm}",
@@ -54,7 +89,7 @@ public final class ReflectionUtil {
                 hasNewPackageStructure()
                     ? ""
                     : "." + serverVersion()))
-        .replace("{obc}", "org.bukkit.craftbukkit." + serverVersion());
+        .replace("{obc}", obcPackage);
     Class<?> out = CACHED_CLASSES.get(path);
 
     if (out == null) {
@@ -65,13 +100,25 @@ public final class ReflectionUtil {
   }
 
   public static String serverVersion() {
+    if (cachedServerVersion != null) {
+      return cachedServerVersion;
+    }
     String packageString = null;
     try {
       packageString = Bukkit.getServer().getClass().getPackage().getName();
-      return packageString.split("\\.")[3];
+      String[] parts = packageString.split("\\.");
+      if (parts.length > 3) {
+        cachedServerVersion = parts[3];
+        return cachedServerVersion;
+      }
+      // Modern Paper servers (1.20.5+) don't have version in package
+      // Return empty string since it won't be used for OBC packages anyway
+      cachedServerVersion = "";
+      return cachedServerVersion;
     } catch (Exception exception) {
       log.warn("[Cirrus] Could not determine server version from " + packageString, exception);
-      return "v1_18_1";
+      cachedServerVersion = "";
+      return cachedServerVersion;
     }
   }
 

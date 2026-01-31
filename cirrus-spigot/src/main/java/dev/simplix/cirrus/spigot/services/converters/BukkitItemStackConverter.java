@@ -6,6 +6,8 @@ import dev.simplix.cirrus.spigot.util.ReflectionUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bukkit.inventory.ItemStack;
+
+import java.lang.reflect.Method;
 import java.util.function.Function;
 
 @Slf4j
@@ -13,13 +15,23 @@ public class BukkitItemStackConverter implements Function<ItemStack, dev.simplix
 
   private static Class<?> craftItemStackClass;
   private static Class<?> itemStackNMSClass;
+  private static Method getTagMethod;
+  private static boolean nbtReflectionAvailable = true;
 
   static {
     try {
       craftItemStackClass = ReflectionUtil.getClass("{obc}.inventory.CraftItemStack");
       itemStackNMSClass = ReflectionClasses.itemStackClass();
+      // Try to find getTag method (doesn't exist in 1.20.5+ with Data Components)
+      try {
+        getTagMethod = itemStackNMSClass.getMethod("getTag");
+      } catch (NoSuchMethodException e) {
+        log.info("[Cirrus] NBT getTag method not available (1.20.5+ uses Data Components)");
+        nbtReflectionAvailable = false;
+      }
     } catch (Exception exception) {
-      log.error("Could not get required classes", exception);
+      log.warn("[Cirrus] Could not initialize BukkitItemStackConverter reflection, using fallback mode", exception);
+      nbtReflectionAvailable = false;
     }
   }
 
@@ -30,15 +42,25 @@ public class BukkitItemStackConverter implements Function<ItemStack, dev.simplix
           Cirrus.service(MaterialDataItemTypeConverter.class).apply(src.getData()),
           src.getAmount(),
           src.getDurability());
-      Object handle = ReflectionUtil.fieldValue(craftItemStackClass, src, "handle");
-      out.nbtData(Cirrus
-          .service(NmsNbtQuerzNbtConverter.class)
-          .apply(itemStackNMSClass.getMethod("getTag").invoke(handle)));
+
+      // Only try NBT extraction if reflection is available
+      if (nbtReflectionAvailable && craftItemStackClass != null && getTagMethod != null) {
+        try {
+          Object handle = ReflectionUtil.fieldValue(craftItemStackClass, src, "handle");
+          if (handle != null) {
+            Object nbtTag = getTagMethod.invoke(handle);
+            if (nbtTag != null) {
+              out.nbtData(Cirrus.service(NmsNbtQuerzNbtConverter.class).apply(nbtTag));
+            }
+          }
+        } catch (Exception e) {
+          log.debug("[Cirrus] Could not extract NBT data from item stack", e);
+        }
+      }
+
       return out;
     } catch (Exception exception) {
       throw new IllegalArgumentException("Could not convert item stack", exception);
-    } catch (Throwable throwable) {
-      throw new IllegalArgumentException("Fatal error converting item stack", throwable);
     }
   }
 

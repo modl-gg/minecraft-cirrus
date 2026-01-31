@@ -16,30 +16,76 @@ import java.util.function.Function;
 @Slf4j
 public class NmsNbtQuerzNbtConverter implements Function<Object, CompoundTag> {
 
-  private static Method nbtCompressedStreamToolAMethod;
+  private static Method nbtCompressedStreamToolWriteMethod;
+  private static Class<?> nbtTagCompoundClass;
+  private static boolean available = true;
 
   static {
     try {
-      nbtCompressedStreamToolAMethod = ReflectionClasses.nbtCompressedStreamTools()
-          .getMethod("a", ReflectionClasses.nbtTagCompound(), OutputStream.class);
+      Class<?> nbtCompressedStreamToolsClass = ReflectionClasses.nbtCompressedStreamTools();
+      nbtTagCompoundClass = ReflectionClasses.nbtTagCompound();
+      nbtCompressedStreamToolWriteMethod = findWriteMethod(nbtCompressedStreamToolsClass, nbtTagCompoundClass);
+      if (nbtCompressedStreamToolWriteMethod == null) {
+        log.info("[Cirrus] NBT write method not found, NmsNbtQuerzNbtConverter will be unavailable");
+        available = false;
+      }
     } catch (final Exception exception) {
-      exception.printStackTrace();
+      log.info("[Cirrus] Could not initialize NmsNbtQuerzNbtConverter (1.20.5+ uses Data Components)", exception);
+      available = false;
     }
+  }
+
+  private static Method findWriteMethod(Class<?> clazz, Class<?> nbtClass) {
+    // Try method name 'a' (obfuscated, used in most versions)
+    try {
+      return clazz.getMethod("a", nbtClass, OutputStream.class);
+    } catch (NoSuchMethodException ignored) {}
+
+    // Try method name 'writeCompressed'
+    try {
+      return clazz.getMethod("writeCompressed", nbtClass, OutputStream.class);
+    } catch (NoSuchMethodException ignored) {}
+
+    // Try all public methods with matching signature
+    for (Method method : clazz.getMethods()) {
+      Class<?>[] params = method.getParameterTypes();
+      if (params.length == 2
+          && nbtClass.isAssignableFrom(params[0])
+          && OutputStream.class.isAssignableFrom(params[1])) {
+        return method;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Returns whether this converter is available on the current server version.
+   */
+  public static boolean isAvailable() {
+    return available;
   }
 
   @Override
   public CompoundTag apply(@NonNull Object src) {
+    if (!available || nbtCompressedStreamToolWriteMethod == null) {
+      return null;
+    }
     byte[] data = null;
     try (final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-      nbtCompressedStreamToolAMethod.invoke(null, src, byteArrayOutputStream);
+      nbtCompressedStreamToolWriteMethod.invoke(null, src, byteArrayOutputStream);
       data = byteArrayOutputStream.toByteArray();
     } catch (final Exception exception) {
-      throw new IllegalStateException(exception);
+      log.debug("[Cirrus] Could not write NBT data", exception);
+      return null;
+    }
+    if (data == null) {
+      return null;
     }
     try (final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data)) {
       return (CompoundTag) new NBTInputStream(byteArrayInputStream).readTag(99).getTag();
     } catch (final IOException ioException) {
-      ioException.printStackTrace();
+      log.debug("[Cirrus] Could not read NBT data", ioException);
     }
     return null;
   }
