@@ -131,6 +131,10 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
         Optional<ActionHandler> handlerOpt = menu.actionHandler(slot);
 
         if (handlerOpt.isEmpty()) {
+            // Resync client inventory to clear ghost items on cursor
+            User user = getUser(displayedMenu.player());
+            int windowId = (int) displayedMenu.nativeMenu();
+            sendWindowItems(user, windowId, tracked.items(), displayedMenu.player().protocolVersion());
             return;
         }
 
