@@ -3,12 +3,16 @@ package dev.simplix.cirrus.common.packet;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCloseWindow;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import dev.simplix.cirrus.common.service.AbstractPacketMenuBuildService;
 import dev.simplix.cirrus.inventory.InventoryTracker;
 import dev.simplix.cirrus.inventory.InventoryTracker.TrackedInventory;
+import dev.simplix.cirrus.item.CirrusBaseItemStack;
 import dev.simplix.cirrus.model.CirrusClickType;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,6 +53,21 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
         event.setCancelled(true);
 
         int slot = wrapper.getSlot();
+        User user = event.getUser();
+        int stateId = tracked.stateId().incrementAndGet();
+
+        // Immediately clear the cursor so the item never visually attaches to it
+        user.sendPacket(new WrapperPlayServerSetSlot(-1, stateId, -1, ItemStack.EMPTY));
+
+        // Immediately restore the clicked slot so the item doesn't visually disappear
+        if (slot >= 0 && slot < tracked.items().length) {
+            CirrusBaseItemStack cirrusItem = tracked.items()[slot];
+            ItemStack packetItem = cirrusItem != null
+                ? PacketItemStackConverter.toPacketEventsItemStack(cirrusItem, user.getClientVersion().getProtocolVersion())
+                : ItemStack.EMPTY;
+            user.sendPacket(new WrapperPlayServerSetSlot(windowId, stateId, slot, packetItem));
+        }
+
         int button = wrapper.getButton();
         WrapperPlayClientClickWindow.WindowClickType clickType = wrapper.getWindowClickType();
 

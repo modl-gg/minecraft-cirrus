@@ -73,7 +73,8 @@ public class InventoryTracker {
         CirrusInventoryType type,
         CirrusChatElement title,
         CirrusBaseItemStack[] items,
-        DisplayedMenu displayedMenu
+        DisplayedMenu displayedMenu,
+        AtomicInteger stateId
     ) {
         public void setItem(int slot, CirrusBaseItemStack item) {
             if (slot >= 0 && slot < items.length) {

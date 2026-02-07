@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
@@ -67,13 +68,14 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
             invType,
             titleElement,
             items,
-            displayedMenu
+            displayedMenu,
+            new AtomicInteger(0)
         );
 
         inventoryTracker.track(playerUuid, windowId, tracked);
 
         sendOpenWindow(user, windowId, invType, title);
-        sendWindowItems(user, windowId, items, playerWrapper.protocolVersion());
+        sendWindowItems(user, windowId, items, playerWrapper.protocolVersion(), tracked.stateId());
 
         return displayedMenu;
     }
@@ -109,7 +111,7 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
             }
         });
 
-        sendWindowItems(user, windowId, items, displayedMenu.player().protocolVersion());
+        sendWindowItems(user, windowId, items, displayedMenu.player().protocolVersion(), tracked.stateId());
     }
 
     @Override
@@ -131,10 +133,10 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
         Optional<ActionHandler> handlerOpt = menu.actionHandler(slot);
 
         if (handlerOpt.isEmpty()) {
-            // Resync client inventory to clear ghost items on cursor
+            // Resync client inventory with incremented state ID to cancel client-side prediction
             User user = getUser(displayedMenu.player());
             int windowId = (int) displayedMenu.nativeMenu();
-            sendWindowItems(user, windowId, tracked.items(), displayedMenu.player().protocolVersion());
+            sendWindowItems(user, windowId, tracked.items(), displayedMenu.player().protocolVersion(), tracked.stateId());
             return;
         }
 
@@ -168,7 +170,7 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
         user.sendPacket(packet);
     }
 
-    protected void sendWindowItems(User user, int windowId, CirrusBaseItemStack[] items, int protocolVersion) {
+    protected void sendWindowItems(User user, int windowId, CirrusBaseItemStack[] items, int protocolVersion, AtomicInteger stateId) {
         List<ItemStack> packetItems = new ArrayList<>();
 
         for (CirrusBaseItemStack item : items) {
@@ -179,7 +181,10 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
             }
         }
 
-        WrapperPlayServerWindowItems packet = new WrapperPlayServerWindowItems(windowId, 0, packetItems, null);
+        // Increment state ID so the client accepts the resync and cancels its prediction.
+        // Set carried item to EMPTY to clear any item on the cursor.
+        int newStateId = stateId.incrementAndGet();
+        WrapperPlayServerWindowItems packet = new WrapperPlayServerWindowItems(windowId, newStateId, packetItems, ItemStack.EMPTY);
         user.sendPacket(packet);
     }
 
