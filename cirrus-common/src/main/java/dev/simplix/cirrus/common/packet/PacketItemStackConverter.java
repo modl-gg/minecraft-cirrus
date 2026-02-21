@@ -2,14 +2,19 @@ package dev.simplix.cirrus.common.packet;
 
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemLore;
+import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemProfile;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import com.github.retrooper.packetevents.protocol.nbt.NBT;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import com.github.retrooper.packetevents.protocol.nbt.NBTList;
+import com.github.retrooper.packetevents.protocol.nbt.NBTString;
 import dev.simplix.cirrus.common.util.ComponentHelper;
 import dev.simplix.cirrus.item.CirrusBaseItemStack;
 import dev.simplix.cirrus.item.CirrusItemType;
 import dev.simplix.cirrus.text.CirrusChatElement;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -48,9 +53,59 @@ public class PacketItemStackConverter {
 
         NBTCompound nbtData = cirrusItem.nbtData();
         if (nbtData != null && !nbtData.getTags().isEmpty()) {
-            builder.component(ComponentTypes.CUSTOM_DATA, nbtData);
+            // Extract SkullOwner for player heads and set as PROFILE component
+            NBT skullOwnerRaw = nbtData.getTags().get("SkullOwner");
+            if (skullOwnerRaw instanceof NBTCompound skullOwner) {
+                ItemProfile profile = extractProfile(skullOwner);
+                if (profile != null) {
+                    builder.component(ComponentTypes.PROFILE, profile);
+                }
+                // Remove SkullOwner from custom data since it's now a proper component
+                nbtData.removeTag("SkullOwner");
+            }
+
+            if (!nbtData.getTags().isEmpty()) {
+                builder.component(ComponentTypes.CUSTOM_DATA, nbtData);
+            }
         }
 
         return builder.build();
+    }
+
+    /**
+     * Extract an ItemProfile from a SkullOwner NBT compound.
+     * Converts the legacy SkullOwner NBT format to PacketEvents' ItemProfile for 1.20.5+ compatibility.
+     */
+    private ItemProfile extractProfile(NBTCompound skullOwner) {
+        try {
+            List<ItemProfile.Property> properties = new ArrayList<>();
+
+            NBT propertiesRaw = skullOwner.getTags().get("Properties");
+            if (propertiesRaw instanceof NBTCompound propertiesCompound) {
+                NBT texturesRaw = propertiesCompound.getTags().get("textures");
+                if (texturesRaw instanceof NBTList<?> texturesList) {
+                    for (Object entry : texturesList.getTags()) {
+                        if (entry instanceof NBTCompound textureEntry) {
+                            NBT valueRaw = textureEntry.getTags().get("Value");
+                            String value = valueRaw instanceof NBTString ? ((NBTString) valueRaw).getValue() : null;
+                            NBT sigRaw = textureEntry.getTags().get("Signature");
+                            String signature = sigRaw instanceof NBTString ? ((NBTString) sigRaw).getValue() : null;
+                            if (value != null) {
+                                properties.add(new ItemProfile.Property("textures", value, signature));
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (properties.isEmpty()) {
+                return null;
+            }
+
+            return new ItemProfile(null, null, properties);
+        } catch (Exception e) {
+            log.warn("Failed to extract profile from SkullOwner NBT", e);
+            return null;
+        }
     }
 }
