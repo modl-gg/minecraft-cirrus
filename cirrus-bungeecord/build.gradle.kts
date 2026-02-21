@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "4.1.1-SNAPSHOT"
+version = "4.1.2-SNAPSHOT"
 
 tasks {
     assemble {

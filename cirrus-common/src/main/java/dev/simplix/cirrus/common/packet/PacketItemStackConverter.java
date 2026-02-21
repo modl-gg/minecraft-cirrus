@@ -54,19 +54,16 @@ public class PacketItemStackConverter {
         NBTCompound nbtData = cirrusItem.nbtData();
         if (nbtData != null && !nbtData.getTags().isEmpty()) {
             // Extract SkullOwner for player heads and set as PROFILE component
+            // Do NOT mutate nbtData - it's reused across renders
             NBT skullOwnerRaw = nbtData.getTags().get("SkullOwner");
             if (skullOwnerRaw instanceof NBTCompound skullOwner) {
                 ItemProfile profile = extractProfile(skullOwner);
                 if (profile != null) {
                     builder.component(ComponentTypes.PROFILE, profile);
                 }
-                // Remove SkullOwner from custom data since it's now a proper component
-                nbtData.removeTag("SkullOwner");
             }
 
-            if (!nbtData.getTags().isEmpty()) {
-                builder.component(ComponentTypes.CUSTOM_DATA, nbtData);
-            }
+            builder.component(ComponentTypes.CUSTOM_DATA, nbtData);
         }
 
         return builder.build();
