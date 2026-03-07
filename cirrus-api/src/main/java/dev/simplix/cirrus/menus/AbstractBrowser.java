@@ -148,6 +148,27 @@ public abstract class AbstractBrowser<T> {
         return currentPageIndex.get() < pages.size() - 1;
     }
 
+    /**
+     * Called before navigating to the next page. Return {@code true} to block the built-in navigation
+     * (e.g., when data for the next page has not been loaded yet).
+     */
+    protected boolean interceptNextPage(Click click) { return false; }
+
+    /**
+     * Called before navigating to the previous page. Return {@code true} to block the built-in navigation.
+     */
+    protected boolean interceptPreviousPage(Click click) { return false; }
+
+    /**
+     * Sets the current page index without rebuilding the menu.
+     * Useful for reopening a menu at a specific page after a rebuild.
+     */
+    protected void setInitialPage(int pageIndex) {
+        if (pageIndex >= 0 && pageIndex < pages.size()) {
+            currentPageIndex.set(pageIndex);
+        }
+    }
+
     // ----------------------------------------------------------------------------------------------------
     // Methods that might be overridden by subclasses
     // ----------------------------------------------------------------------------------------------------
@@ -294,18 +315,22 @@ public abstract class AbstractBrowser<T> {
                 this.handleClick(click, t);
             }
         });
-        menu.registerActionHandler(NEXT_PAGE_ACTION_HANDLER, (click) -> {
+        menu.registerActionHandler(NEXT_PAGE_ACTION_HANDLER, (ActionHandler) (click) -> {
+            if (interceptNextPage(click)) return CallResult.DENY_GRABBING;
             if (hasNextPage()) {
                 currentPageIndex.incrementAndGet();
                 currentPage().display(click.player());
             }
+            return CallResult.DENY_GRABBING;
         });
 
-        menu.registerActionHandler(PREVIOUS_PAGE_ACTION_HANDLER, (click) -> {
+        menu.registerActionHandler(PREVIOUS_PAGE_ACTION_HANDLER, (ActionHandler) (click) -> {
+            if (interceptPreviousPage(click)) return CallResult.DENY_GRABBING;
             if (hasPreviousPage()) {
                 currentPageIndex.decrementAndGet();
                 currentPage().display(click.player());
             }
+            return CallResult.DENY_GRABBING;
         });
 
         for (RegisteredActionHandler actionHandler : actionHandlers()) {

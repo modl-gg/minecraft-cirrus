@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "4.1.2-SNAPSHOT"
+version = "4.1.3-SNAPSHOT"
 
 allprojects {
     apply(plugin = "java")
@@ -27,9 +27,9 @@ allprojects {
     repositories {
         mavenCentral()
         maven(url = "https://libraries.minecraft.net")
-        maven(url = "https://jitpack.io")
         maven(url = "https://repo.codemc.io/repository/maven-releases/")
         maven(url = "https://repo.codemc.io/repository/maven-snapshots/")
+        maven(url = "https://jitpack.io")
         maven(url = "https://repo.papermc.io/repository/maven-public/")
         maven(url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
         maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
