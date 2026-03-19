@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.protocol.nbt.NBT;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.nbt.NBTList;
 import com.github.retrooper.packetevents.protocol.nbt.NBTString;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import dev.simplix.cirrus.common.util.ComponentHelper;
 import dev.simplix.cirrus.item.CirrusBaseItemStack;
 import dev.simplix.cirrus.item.CirrusItemType;
@@ -33,9 +34,15 @@ public class PacketItemStackConverter {
             return ItemStack.EMPTY;
         }
 
+        int legacyData = 0;
+        if (ClientVersion.getById(protocolVersion).isOlderThan(ClientVersion.V_1_13)) {
+            legacyData = LegacyItemMapping.getDataValue(cirrusType.identifier());
+        }
+
         ItemStack.Builder builder = ItemStack.builder()
             .type(itemType)
-            .amount(cirrusItem.amount());
+            .amount(cirrusItem.amount())
+            .legacyData(legacyData);
 
         CirrusChatElement displayName = cirrusItem.displayName();
         if (displayName != null && !displayName.isEmpty()) {
