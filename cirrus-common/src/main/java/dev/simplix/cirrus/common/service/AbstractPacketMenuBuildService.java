@@ -1,6 +1,7 @@
 package dev.simplix.cirrus.common.service;
 
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCloseWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
@@ -162,11 +163,22 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
     }
 
     protected void sendOpenWindow(User user, int windowId, CirrusInventoryType type, Component title) {
-        WrapperPlayServerOpenWindow packet = new WrapperPlayServerOpenWindow(
-            windowId,
-            type.toPacketEventsTypeId(),
-            title
-        );
+        WrapperPlayServerOpenWindow packet;
+        if (user.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
+            packet = new WrapperPlayServerOpenWindow(
+                windowId,
+                type.toLegacyType(),
+                title,
+                type.size(),
+                -1
+            );
+        } else {
+            packet = new WrapperPlayServerOpenWindow(
+                windowId,
+                type.toPacketEventsTypeId(),
+                title
+            );
+        }
         user.sendPacket(packet);
     }
 

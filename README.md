@@ -25,12 +25,12 @@ You can shade it or require it to be installed on the server. For our library, C
   	<dependency>
 	    <groupId>com.github.modl-gg.minecraft-cirrus</groupId>
 	    <artifactId>cirrus-api</artifactId>
-	    <version>4.1.3-SNAPSHOT</version>
+	    <version>4.1.4-SNAPSHOT</version>
 	</dependency>
   	<dependency>
 	    <groupId>com.github.modl-gg.minecraft-cirrus</groupId>
 	    <artifactId>cirrus-[PLATFORM]</artifactId>
-	    <version>4.1.3-SNAPSHOT</version>
+	    <version>4.1.4-SNAPSHOT</version>
 	</dependency>
 </dependencies>
 ```
@@ -43,8 +43,8 @@ repositories {
 }
 
 dependencies {
-        implementation 'com.github.modl-gg.minecraft-cirrus:cirrus-api:4.1.3-SNAPSHOT'
-        implementation 'com.github.modl-gg.minecraft-cirrus:cirrus-[PLATFORM]:4.1.3-SNAPSHOT'
+        implementation 'com.github.modl-gg.minecraft-cirrus:cirrus-api:4.1.4-SNAPSHOT'
+        implementation 'com.github.modl-gg.minecraft-cirrus:cirrus-[PLATFORM]:4.1.4-SNAPSHOT'
 }
 ```
 

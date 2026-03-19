@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "4.1.3-SNAPSHOT"
+version = "4.1.4-SNAPSHOT"
 
 dependencies {
     compileOnly("com.github.retrooper:packetevents-api:2.11.2")

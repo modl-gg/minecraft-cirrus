@@ -47,6 +47,28 @@ public enum CirrusInventoryType {
         return packetEventsTypeId;
     }
 
+    /**
+     * Returns the legacy inventory type string used in the Open Window packet for
+     * Minecraft clients older than 1.14 (protocol versions 1.8–1.13).
+     * Types that didn't exist before 1.14 fall back to "minecraft:chest".
+     */
+    public String toLegacyType() {
+        return switch (this) {
+            case GENERIC_9X1, GENERIC_9X2, GENERIC_9X3, GENERIC_9X4, GENERIC_9X5, GENERIC_9X6 -> "minecraft:chest";
+            case GENERIC_3X3 -> "minecraft:dispenser";
+            case ANVIL -> "minecraft:anvil";
+            case BEACON -> "minecraft:beacon";
+            case BREWING_STAND -> "minecraft:brewing_stand";
+            case CRAFTING -> "minecraft:crafting_table";
+            case ENCHANTMENT -> "minecraft:enchanting_table";
+            case FURNACE -> "minecraft:furnace";
+            case HOPPER -> "minecraft:hopper";
+            case MERCHANT -> "minecraft:villager";
+            case SHULKER_BOX -> "minecraft:shulker_box";
+            default -> "minecraft:chest";
+        };
+    }
+
     public static CirrusInventoryType fromSize(int size) {
         return switch (size) {
             case 9 -> GENERIC_9X1;
