@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.nbt.NBTList;
 import com.github.retrooper.packetevents.protocol.nbt.NBTString;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
 import dev.simplix.cirrus.common.util.ComponentHelper;
 import dev.simplix.cirrus.item.CirrusBaseItemStack;
 import dev.simplix.cirrus.item.CirrusItemType;
@@ -27,6 +28,7 @@ public class PacketItemStackConverter {
 
     public ItemStack toPacketEventsItemStack(CirrusBaseItemStack cirrusItem, int protocolVersion) {
         CirrusItemType cirrusType = cirrusItem.itemType();
+        ClientVersion clientVersion = ClientVersion.getById(protocolVersion);
 
         ItemType itemType = ItemTypes.getByName(cirrusType.identifier());
         if (itemType == null) {
@@ -35,7 +37,7 @@ public class PacketItemStackConverter {
         }
 
         int legacyData = 0;
-        if (ClientVersion.getById(protocolVersion).isOlderThan(ClientVersion.V_1_13)) {
+        if (clientVersion.isOlderThan(ClientVersion.V_1_13)) {
             legacyData = LegacyItemMapping.getDataValue(cirrusType.identifier());
         }
 
@@ -44,33 +46,75 @@ public class PacketItemStackConverter {
             .amount(cirrusItem.amount())
             .legacyData(legacyData);
 
-        CirrusChatElement displayName = cirrusItem.displayName();
-        if (displayName != null && !displayName.isEmpty()) {
-            Component nameComponent = ComponentHelper.removeItalic(displayName.asComponent());
-            builder.component(ComponentTypes.CUSTOM_NAME, nameComponent);
-        }
+        boolean useComponents = !clientVersion.isOlderThan(ClientVersion.V_1_20_5);
 
+        CirrusChatElement displayName = cirrusItem.displayName();
         List<CirrusChatElement> lore = cirrusItem.lore();
-        if (lore != null && !lore.isEmpty()) {
-            List<Component> loreComponents = lore.stream()
-                .map(element -> ComponentHelper.removeItalic(element.asComponent()))
-                .toList();
-            builder.component(ComponentTypes.LORE, new ItemLore(loreComponents));
+
+        if (useComponents) {
+            // 1.20.5+ data components path
+            if (displayName != null && !displayName.isEmpty()) {
+                Component nameComponent = ComponentHelper.removeItalic(displayName.asComponent());
+                builder.component(ComponentTypes.CUSTOM_NAME, nameComponent);
+            }
+
+            if (lore != null && !lore.isEmpty()) {
+                List<Component> loreComponents = lore.stream()
+                    .map(element -> ComponentHelper.removeItalic(element.asComponent()))
+                    .toList();
+                builder.component(ComponentTypes.LORE, new ItemLore(loreComponents));
+            }
+        } else {
+            // Pre-1.20.5: set display name and lore via NBT display tag
+            boolean pre113 = clientVersion.isOlderThan(ClientVersion.V_1_13);
+            NBTCompound display = new NBTCompound();
+
+            if (displayName != null && !displayName.isEmpty()) {
+                Component nameComponent = ComponentHelper.removeItalic(displayName.asComponent());
+                if (pre113) {
+                    display.setTag("Name", new NBTString(AdventureSerializer.toLegacyFormat(nameComponent)));
+                } else {
+                    display.setTag("Name", new NBTString(AdventureSerializer.toJson(nameComponent)));
+                }
+            }
+
+            if (lore != null && !lore.isEmpty()) {
+                NBTList<NBTString> loreList = NBTList.createStringList();
+                for (CirrusChatElement element : lore) {
+                    Component loreComponent = ComponentHelper.removeItalic(element.asComponent());
+                    if (pre113) {
+                        loreList.addTag(new NBTString(AdventureSerializer.toLegacyFormat(loreComponent)));
+                    } else {
+                        loreList.addTag(new NBTString(AdventureSerializer.toJson(loreComponent)));
+                    }
+                }
+                display.setTag("Lore", loreList);
+            }
+
+            if (!display.getTags().isEmpty()) {
+                builder.nbt("display", display);
+            }
         }
 
         NBTCompound nbtData = cirrusItem.nbtData();
         if (nbtData != null && !nbtData.getTags().isEmpty()) {
-            // Extract SkullOwner for player heads and set as PROFILE component
-            // Do NOT mutate nbtData - it's reused across renders
-            NBT skullOwnerRaw = nbtData.getTags().get("SkullOwner");
-            if (skullOwnerRaw instanceof NBTCompound skullOwner) {
-                ItemProfile profile = extractProfile(skullOwner);
-                if (profile != null) {
-                    builder.component(ComponentTypes.PROFILE, profile);
+            if (useComponents) {
+                // 1.20.5+: extract SkullOwner into PROFILE component
+                // Do NOT mutate nbtData - it's reused across renders
+                NBT skullOwnerRaw = nbtData.getTags().get("SkullOwner");
+                if (skullOwnerRaw instanceof NBTCompound skullOwner) {
+                    ItemProfile profile = extractProfile(skullOwner);
+                    if (profile != null) {
+                        builder.component(ComponentTypes.PROFILE, profile);
+                    }
+                }
+                builder.component(ComponentTypes.CUSTOM_DATA, nbtData);
+            } else {
+                // Pre-1.20.5: merge NBT data directly (SkullOwner, etc.)
+                for (var entry : nbtData.getTags().entrySet()) {
+                    builder.nbt(entry.getKey(), entry.getValue());
                 }
             }
-
-            builder.component(ComponentTypes.CUSTOM_DATA, nbtData);
         }
 
         return builder.build();
