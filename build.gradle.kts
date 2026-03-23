@@ -10,7 +10,8 @@ allprojects {
     apply(plugin = "maven-publish")
 
     java {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
         disableAutoTargetJvm()
         withSourcesJar()
         withJavadocJar()
@@ -36,15 +37,15 @@ allprojects {
     }
 
     dependencies {
-        lib("org.projectlombok:lombok:1.18.24")
+        lib("org.projectlombok:lombok:1.18.36")
         lib("com.google.code.gson:gson:2.10")
         lib("org.slf4j:slf4j-api:1.8.0-beta4")
 
         lib("com.mojang:authlib:1.5.21")
 
-        annotationProcessor("org.projectlombok:lombok:1.18.24")
-        testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
-        testCompileOnly("org.projectlombok:lombok:1.18.24")
+        annotationProcessor("org.projectlombok:lombok:1.18.36")
+        testAnnotationProcessor("org.projectlombok:lombok:1.18.36")
+        testCompileOnly("org.projectlombok:lombok:1.18.36")
 
         testImplementation("org.slf4j:slf4j-api:1.8.0-beta4")
 
