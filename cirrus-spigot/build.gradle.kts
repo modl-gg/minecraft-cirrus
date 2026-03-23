@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "4.1.7-SNAPSHOT"
+version = "4.1.8-SNAPSHOT"
 
 repositories {
     mavenCentral()

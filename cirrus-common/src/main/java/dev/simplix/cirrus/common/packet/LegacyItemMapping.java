@@ -8,10 +8,16 @@ import lombok.experimental.UtilityClass;
 public class LegacyItemMapping {
 
     private static final class LegacyEntry {
+        private final String baseType;
         private final int dataValue;
 
-        LegacyEntry(int dataValue) {
+        LegacyEntry(String baseType, int dataValue) {
+            this.baseType = baseType;
             this.dataValue = dataValue;
+        }
+
+        String baseType() {
+            return baseType;
         }
 
         int dataValue() {
@@ -22,116 +28,125 @@ public class LegacyItemMapping {
     private final Map<String, LegacyEntry> MAPPINGS = new HashMap<>();
 
     static {
-        // Skulls
-        put("minecraft:skeleton_skull", 0);
-        put("minecraft:wither_skeleton_skull", 1);
-        put("minecraft:zombie_head", 2);
-        put("minecraft:player_head", 3);
-        put("minecraft:creeper_head", 4);
-        put("minecraft:dragon_head", 5);
+        // Skulls — all variants map to skeleton_skull (legacy ID 397) with different data values
+        put("minecraft:skeleton_skull", null, 0);
+        put("minecraft:wither_skeleton_skull", "minecraft:skeleton_skull", 1);
+        put("minecraft:zombie_head", "minecraft:skeleton_skull", 2);
+        put("minecraft:player_head", "minecraft:skeleton_skull", 3);
+        put("minecraft:creeper_head", "minecraft:skeleton_skull", 4);
+        put("minecraft:dragon_head", "minecraft:skeleton_skull", 5);
 
-        // Fish
-        put("minecraft:cod", 0);
-        put("minecraft:salmon", 1);
-        put("minecraft:tropical_fish", 2);
-        put("minecraft:pufferfish", 3);
+        // Fish — all variants map to cod (legacy ID 349)
+        put("minecraft:cod", null, 0);
+        put("minecraft:salmon", "minecraft:cod", 1);
+        put("minecraft:tropical_fish", "minecraft:cod", 2);
+        put("minecraft:pufferfish", "minecraft:cod", 3);
 
-        // Wool (all 16 colors)
-        put("minecraft:white_wool", 0);
-        put("minecraft:orange_wool", 1);
-        put("minecraft:magenta_wool", 2);
-        put("minecraft:light_blue_wool", 3);
-        put("minecraft:yellow_wool", 4);
-        put("minecraft:lime_wool", 5);
-        put("minecraft:pink_wool", 6);
-        put("minecraft:gray_wool", 7);
-        put("minecraft:light_gray_wool", 8);
-        put("minecraft:cyan_wool", 9);
-        put("minecraft:purple_wool", 10);
-        put("minecraft:blue_wool", 11);
-        put("minecraft:brown_wool", 12);
-        put("minecraft:green_wool", 13);
-        put("minecraft:red_wool", 14);
-        put("minecraft:black_wool", 15);
+        // Wool — all variants map to white_wool (legacy ID 35)
+        put("minecraft:white_wool", null, 0);
+        put("minecraft:orange_wool", "minecraft:white_wool", 1);
+        put("minecraft:magenta_wool", "minecraft:white_wool", 2);
+        put("minecraft:light_blue_wool", "minecraft:white_wool", 3);
+        put("minecraft:yellow_wool", "minecraft:white_wool", 4);
+        put("minecraft:lime_wool", "minecraft:white_wool", 5);
+        put("minecraft:pink_wool", "minecraft:white_wool", 6);
+        put("minecraft:gray_wool", "minecraft:white_wool", 7);
+        put("minecraft:light_gray_wool", "minecraft:white_wool", 8);
+        put("minecraft:cyan_wool", "minecraft:white_wool", 9);
+        put("minecraft:purple_wool", "minecraft:white_wool", 10);
+        put("minecraft:blue_wool", "minecraft:white_wool", 11);
+        put("minecraft:brown_wool", "minecraft:white_wool", 12);
+        put("minecraft:green_wool", "minecraft:white_wool", 13);
+        put("minecraft:red_wool", "minecraft:white_wool", 14);
+        put("minecraft:black_wool", "minecraft:white_wool", 15);
 
-        // Stained glass panes (all 16 colors)
-        put("minecraft:white_stained_glass_pane", 0);
-        put("minecraft:orange_stained_glass_pane", 1);
-        put("minecraft:magenta_stained_glass_pane", 2);
-        put("minecraft:light_blue_stained_glass_pane", 3);
-        put("minecraft:yellow_stained_glass_pane", 4);
-        put("minecraft:lime_stained_glass_pane", 5);
-        put("minecraft:pink_stained_glass_pane", 6);
-        put("minecraft:gray_stained_glass_pane", 7);
-        put("minecraft:light_gray_stained_glass_pane", 8);
-        put("minecraft:cyan_stained_glass_pane", 9);
-        put("minecraft:purple_stained_glass_pane", 10);
-        put("minecraft:blue_stained_glass_pane", 11);
-        put("minecraft:brown_stained_glass_pane", 12);
-        put("minecraft:green_stained_glass_pane", 13);
-        put("minecraft:red_stained_glass_pane", 14);
-        put("minecraft:black_stained_glass_pane", 15);
+        // Stained glass panes — all variants map to white_stained_glass_pane (legacy ID 160)
+        put("minecraft:white_stained_glass_pane", null, 0);
+        put("minecraft:orange_stained_glass_pane", "minecraft:white_stained_glass_pane", 1);
+        put("minecraft:magenta_stained_glass_pane", "minecraft:white_stained_glass_pane", 2);
+        put("minecraft:light_blue_stained_glass_pane", "minecraft:white_stained_glass_pane", 3);
+        put("minecraft:yellow_stained_glass_pane", "minecraft:white_stained_glass_pane", 4);
+        put("minecraft:lime_stained_glass_pane", "minecraft:white_stained_glass_pane", 5);
+        put("minecraft:pink_stained_glass_pane", "minecraft:white_stained_glass_pane", 6);
+        put("minecraft:gray_stained_glass_pane", "minecraft:white_stained_glass_pane", 7);
+        put("minecraft:light_gray_stained_glass_pane", "minecraft:white_stained_glass_pane", 8);
+        put("minecraft:cyan_stained_glass_pane", "minecraft:white_stained_glass_pane", 9);
+        put("minecraft:purple_stained_glass_pane", "minecraft:white_stained_glass_pane", 10);
+        put("minecraft:blue_stained_glass_pane", "minecraft:white_stained_glass_pane", 11);
+        put("minecraft:brown_stained_glass_pane", "minecraft:white_stained_glass_pane", 12);
+        put("minecraft:green_stained_glass_pane", "minecraft:white_stained_glass_pane", 13);
+        put("minecraft:red_stained_glass_pane", "minecraft:white_stained_glass_pane", 14);
+        put("minecraft:black_stained_glass_pane", "minecraft:white_stained_glass_pane", 15);
 
-        // Terracotta (all 16 colors)
-        put("minecraft:white_terracotta", 0);
-        put("minecraft:orange_terracotta", 1);
-        put("minecraft:magenta_terracotta", 2);
-        put("minecraft:light_blue_terracotta", 3);
-        put("minecraft:yellow_terracotta", 4);
-        put("minecraft:lime_terracotta", 5);
-        put("minecraft:pink_terracotta", 6);
-        put("minecraft:gray_terracotta", 7);
-        put("minecraft:light_gray_terracotta", 8);
-        put("minecraft:cyan_terracotta", 9);
-        put("minecraft:purple_terracotta", 10);
-        put("minecraft:blue_terracotta", 11);
-        put("minecraft:brown_terracotta", 12);
-        put("minecraft:green_terracotta", 13);
-        put("minecraft:red_terracotta", 14);
-        put("minecraft:black_terracotta", 15);
+        // Terracotta — all variants map to white_terracotta (legacy ID 159)
+        put("minecraft:white_terracotta", null, 0);
+        put("minecraft:orange_terracotta", "minecraft:white_terracotta", 1);
+        put("minecraft:magenta_terracotta", "minecraft:white_terracotta", 2);
+        put("minecraft:light_blue_terracotta", "minecraft:white_terracotta", 3);
+        put("minecraft:yellow_terracotta", "minecraft:white_terracotta", 4);
+        put("minecraft:lime_terracotta", "minecraft:white_terracotta", 5);
+        put("minecraft:pink_terracotta", "minecraft:white_terracotta", 6);
+        put("minecraft:gray_terracotta", "minecraft:white_terracotta", 7);
+        put("minecraft:light_gray_terracotta", "minecraft:white_terracotta", 8);
+        put("minecraft:cyan_terracotta", "minecraft:white_terracotta", 9);
+        put("minecraft:purple_terracotta", "minecraft:white_terracotta", 10);
+        put("minecraft:blue_terracotta", "minecraft:white_terracotta", 11);
+        put("minecraft:brown_terracotta", "minecraft:white_terracotta", 12);
+        put("minecraft:green_terracotta", "minecraft:white_terracotta", 13);
+        put("minecraft:red_terracotta", "minecraft:white_terracotta", 14);
+        put("minecraft:black_terracotta", "minecraft:white_terracotta", 15);
 
-        // Dyes (all 16 colors — legacy dye data values are inverted from wool)
-        put("minecraft:ink_sac", 0);
-        put("minecraft:red_dye", 1);
-        put("minecraft:green_dye", 2);
-        put("minecraft:cocoa_beans", 3);
-        put("minecraft:lapis_lazuli", 4);
-        put("minecraft:purple_dye", 5);
-        put("minecraft:cyan_dye", 6);
-        put("minecraft:light_gray_dye", 7);
-        put("minecraft:gray_dye", 8);
-        put("minecraft:pink_dye", 9);
-        put("minecraft:lime_dye", 10);
-        put("minecraft:yellow_dye", 11);
-        put("minecraft:light_blue_dye", 12);
-        put("minecraft:magenta_dye", 13);
-        put("minecraft:orange_dye", 14);
-        put("minecraft:bone_meal", 15);
+        // Dyes — all variants map to ink_sac (legacy ID 351)
+        put("minecraft:ink_sac", null, 0);
+        put("minecraft:red_dye", "minecraft:ink_sac", 1);
+        put("minecraft:green_dye", "minecraft:ink_sac", 2);
+        put("minecraft:cocoa_beans", "minecraft:ink_sac", 3);
+        put("minecraft:lapis_lazuli", "minecraft:ink_sac", 4);
+        put("minecraft:purple_dye", "minecraft:ink_sac", 5);
+        put("minecraft:cyan_dye", "minecraft:ink_sac", 6);
+        put("minecraft:light_gray_dye", "minecraft:ink_sac", 7);
+        put("minecraft:gray_dye", "minecraft:ink_sac", 8);
+        put("minecraft:pink_dye", "minecraft:ink_sac", 9);
+        put("minecraft:lime_dye", "minecraft:ink_sac", 10);
+        put("minecraft:yellow_dye", "minecraft:ink_sac", 11);
+        put("minecraft:light_blue_dye", "minecraft:ink_sac", 12);
+        put("minecraft:magenta_dye", "minecraft:ink_sac", 13);
+        put("minecraft:orange_dye", "minecraft:ink_sac", 14);
+        put("minecraft:bone_meal", "minecraft:ink_sac", 15);
 
-        // Beds
-        put("minecraft:white_bed", 0);
-        put("minecraft:orange_bed", 1);
-        put("minecraft:magenta_bed", 2);
-        put("minecraft:light_blue_bed", 3);
-        put("minecraft:yellow_bed", 4);
-        put("minecraft:lime_bed", 5);
-        put("minecraft:pink_bed", 6);
-        put("minecraft:gray_bed", 7);
-        put("minecraft:light_gray_bed", 8);
-        put("minecraft:cyan_bed", 9);
-        put("minecraft:purple_bed", 10);
-        put("minecraft:blue_bed", 11);
-        put("minecraft:brown_bed", 12);
-        put("minecraft:green_bed", 13);
-        put("minecraft:red_bed", 14);
-        put("minecraft:black_bed", 15);
+        // Beds — all variants map to red_bed (legacy ID 355)
+        put("minecraft:white_bed", "minecraft:red_bed", 0);
+        put("minecraft:orange_bed", "minecraft:red_bed", 1);
+        put("minecraft:magenta_bed", "minecraft:red_bed", 2);
+        put("minecraft:light_blue_bed", "minecraft:red_bed", 3);
+        put("minecraft:yellow_bed", "minecraft:red_bed", 4);
+        put("minecraft:lime_bed", "minecraft:red_bed", 5);
+        put("minecraft:pink_bed", "minecraft:red_bed", 6);
+        put("minecraft:gray_bed", "minecraft:red_bed", 7);
+        put("minecraft:light_gray_bed", "minecraft:red_bed", 8);
+        put("minecraft:cyan_bed", "minecraft:red_bed", 9);
+        put("minecraft:purple_bed", "minecraft:red_bed", 10);
+        put("minecraft:blue_bed", "minecraft:red_bed", 11);
+        put("minecraft:brown_bed", "minecraft:red_bed", 12);
+        put("minecraft:green_bed", "minecraft:red_bed", 13);
+        put("minecraft:red_bed", null, 14);
+        put("minecraft:black_bed", "minecraft:red_bed", 15);
 
         // Signs
-        put("minecraft:oak_sign", 0);
+        put("minecraft:oak_sign", null, 0);
     }
 
-    private void put(String identifier, int dataValue) {
-        MAPPINGS.put(identifier, new LegacyEntry(dataValue));
+    private void put(String identifier, String baseType, int dataValue) {
+        MAPPINGS.put(identifier, new LegacyEntry(baseType, dataValue));
+    }
+
+    /**
+     * Returns the legacy base item type identifier for pre-1.13 clients,
+     * or null if the item type itself has a valid legacy mapping.
+     */
+    public String getBaseType(String identifier) {
+        LegacyEntry entry = MAPPINGS.get(identifier);
+        return entry != null ? entry.baseType() : null;
     }
 
     public int getDataValue(String identifier) {

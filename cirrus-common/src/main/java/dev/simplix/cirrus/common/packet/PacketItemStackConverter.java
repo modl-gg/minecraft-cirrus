@@ -32,15 +32,23 @@ public class PacketItemStackConverter {
         CirrusItemType cirrusType = cirrusItem.itemType();
         ClientVersion clientVersion = ClientVersion.getById(protocolVersion);
 
-        ItemType itemType = ItemTypes.getByName(cirrusType.identifier());
+        String itemIdentifier = cirrusType.identifier();
+        int legacyData = 0;
+
+        if (clientVersion.isOlderThan(ClientVersion.V_1_13)) {
+            legacyData = LegacyItemMapping.getDataValue(itemIdentifier);
+            // Remap to the legacy base item type that PacketEvents has a pre-1.13 ID for.
+            // e.g. player_head -> skeleton_skull (ID 397), orange_wool -> white_wool (ID 35)
+            String baseType = LegacyItemMapping.getBaseType(itemIdentifier);
+            if (baseType != null) {
+                itemIdentifier = baseType;
+            }
+        }
+
+        ItemType itemType = ItemTypes.getByName(itemIdentifier);
         if (itemType == null) {
             log.warn("Unknown item type: {}", cirrusType.identifier());
             return ItemStack.EMPTY;
-        }
-
-        int legacyData = 0;
-        if (clientVersion.isOlderThan(ClientVersion.V_1_13)) {
-            legacyData = LegacyItemMapping.getDataValue(cirrusType.identifier());
         }
 
         ItemStack.Builder builder = ItemStack.builder()
