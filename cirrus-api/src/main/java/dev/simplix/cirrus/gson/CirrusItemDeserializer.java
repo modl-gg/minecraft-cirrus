@@ -12,6 +12,7 @@ import dev.simplix.cirrus.text.CirrusChatElement;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CirrusItemDeserializer implements JsonDeserializer<CirrusItem> {
 
@@ -68,7 +69,7 @@ public class CirrusItemDeserializer implements JsonDeserializer<CirrusItem> {
         if (lore != null) {
             item.loreElements(lore.stream()
                 .map(CirrusChatElement::ofLegacyText)
-                .toList());
+                .collect(Collectors.toList()));
         }
 
         return item;

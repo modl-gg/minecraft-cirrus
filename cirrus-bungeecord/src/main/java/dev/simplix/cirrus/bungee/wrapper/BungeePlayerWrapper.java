@@ -68,18 +68,19 @@ public class BungeePlayerWrapper implements CirrusPlayerWrapper {
         if (category == null) {
             return SoundCategory.MASTER;
         }
-        return switch (category) {
-            case MASTER -> SoundCategory.MASTER;
-            case MUSIC -> SoundCategory.MUSIC;
-            case RECORDS -> SoundCategory.RECORD;
-            case WEATHER -> SoundCategory.WEATHER;
-            case BLOCKS -> SoundCategory.BLOCK;
-            case HOSTILE -> SoundCategory.HOSTILE;
-            case NEUTRAL -> SoundCategory.NEUTRAL;
-            case PLAYERS -> SoundCategory.PLAYER;
-            case AMBIENT -> SoundCategory.AMBIENT;
-            case VOICE -> SoundCategory.VOICE;
-        };
+        switch (category) {
+            case MASTER: return SoundCategory.MASTER;
+            case MUSIC: return SoundCategory.MUSIC;
+            case RECORDS: return SoundCategory.RECORD;
+            case WEATHER: return SoundCategory.WEATHER;
+            case BLOCKS: return SoundCategory.BLOCK;
+            case HOSTILE: return SoundCategory.HOSTILE;
+            case NEUTRAL: return SoundCategory.NEUTRAL;
+            case PLAYERS: return SoundCategory.PLAYER;
+            case AMBIENT: return SoundCategory.AMBIENT;
+            case VOICE: return SoundCategory.VOICE;
+            default: return SoundCategory.MASTER;
+        }
     }
 
     @Override

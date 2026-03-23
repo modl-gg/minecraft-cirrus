@@ -22,11 +22,11 @@ public class SimpleMenuTest {
     public void testMenuRow() {
         for (MenuElement menuElement : testSchematic.row(1)) {
             // We don't have any items in this menu
-            Assertions.assertTrue(
-                menuElement.item().isEmpty(),
+            Assertions.assertFalse(
+                menuElement.item().isPresent(),
                 "There should not be any item an empty row");
-            Assertions.assertTrue(
-                menuElement.actionHandlerString().isEmpty(),
+            Assertions.assertFalse(
+                menuElement.actionHandlerString().isPresent(),
                 "Actionhandlerstring is not present in an empty slot");
         }
 

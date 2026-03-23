@@ -7,7 +7,9 @@ import dev.simplix.cirrus.item.Items;
 import dev.simplix.cirrus.menus.AbstractBrowser;
 import dev.simplix.cirrus.model.Click;
 import dev.simplix.cirrus.text.CirrusChatElement;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ItemTypeBrowser extends AbstractBrowser<CirrusItemType> {
 
-    private static final List<CirrusItemType> BROWSABLE_ITEMS = List.of(
+    private static final List<CirrusItemType> BROWSABLE_ITEMS = Arrays.asList(
         CirrusItemType.STONE,
         CirrusItemType.DIAMOND,
         CirrusItemType.EMERALD,
@@ -72,7 +74,7 @@ public class ItemTypeBrowser extends AbstractBrowser<CirrusItemType> {
     @Override
     protected Map<Integer, CirrusItem> intercept(int menuSize) {
         int backButtonSlot = menuSize - 1;
-        return Map.of(
+        return Collections.singletonMap(
             backButtonSlot,
             CirrusItem
                 .of(

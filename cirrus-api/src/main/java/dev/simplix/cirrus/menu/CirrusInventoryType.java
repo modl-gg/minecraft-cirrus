@@ -53,32 +53,49 @@ public enum CirrusInventoryType {
      * Types that didn't exist before 1.14 fall back to "minecraft:chest".
      */
     public String toLegacyType() {
-        return switch (this) {
-            case GENERIC_9X1, GENERIC_9X2, GENERIC_9X3, GENERIC_9X4, GENERIC_9X5, GENERIC_9X6 -> "minecraft:chest";
-            case GENERIC_3X3 -> "minecraft:dispenser";
-            case ANVIL -> "minecraft:anvil";
-            case BEACON -> "minecraft:beacon";
-            case BREWING_STAND -> "minecraft:brewing_stand";
-            case CRAFTING -> "minecraft:crafting_table";
-            case ENCHANTMENT -> "minecraft:enchanting_table";
-            case FURNACE -> "minecraft:furnace";
-            case HOPPER -> "minecraft:hopper";
-            case MERCHANT -> "minecraft:villager";
-            case SHULKER_BOX -> "minecraft:shulker_box";
-            default -> "minecraft:chest";
-        };
+        switch (this) {
+            case GENERIC_9X1:
+            case GENERIC_9X2:
+            case GENERIC_9X3:
+            case GENERIC_9X4:
+            case GENERIC_9X5:
+            case GENERIC_9X6:
+                return "minecraft:chest";
+            case GENERIC_3X3:
+                return "minecraft:dispenser";
+            case ANVIL:
+                return "minecraft:anvil";
+            case BEACON:
+                return "minecraft:beacon";
+            case BREWING_STAND:
+                return "minecraft:brewing_stand";
+            case CRAFTING:
+                return "minecraft:crafting_table";
+            case ENCHANTMENT:
+                return "minecraft:enchanting_table";
+            case FURNACE:
+                return "minecraft:furnace";
+            case HOPPER:
+                return "minecraft:hopper";
+            case MERCHANT:
+                return "minecraft:villager";
+            case SHULKER_BOX:
+                return "minecraft:shulker_box";
+            default:
+                return "minecraft:chest";
+        }
     }
 
     public static CirrusInventoryType fromSize(int size) {
-        return switch (size) {
-            case 9 -> GENERIC_9X1;
-            case 18 -> GENERIC_9X2;
-            case 27 -> GENERIC_9X3;
-            case 36 -> GENERIC_9X4;
-            case 45 -> GENERIC_9X5;
-            case 54 -> GENERIC_9X6;
-            default -> throw new IllegalArgumentException("Invalid size: " + size);
-        };
+        switch (size) {
+            case 9: return GENERIC_9X1;
+            case 18: return GENERIC_9X2;
+            case 27: return GENERIC_9X3;
+            case 36: return GENERIC_9X4;
+            case 45: return GENERIC_9X5;
+            case 54: return GENERIC_9X6;
+            default: throw new IllegalArgumentException("Invalid size: " + size);
+        }
     }
 
     public static CirrusInventoryType calculateForContent(int contentSize) {

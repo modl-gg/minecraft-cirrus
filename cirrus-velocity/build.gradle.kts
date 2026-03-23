@@ -11,6 +11,10 @@ repositories {
     maven(url = "https://papermc.io/repo/repository/maven-public/")
 }
 
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
+
 dependencies {
     implementation(project(":cirrus-api"))
     implementation(project(":cirrus-common"))

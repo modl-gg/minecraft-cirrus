@@ -13,6 +13,7 @@ import dev.simplix.cirrus.text.CirrusChatElement;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ItemStackDeserializer implements JsonDeserializer<CirrusBaseItemStack> {
 
@@ -44,7 +45,7 @@ public class ItemStackDeserializer implements JsonDeserializer<CirrusBaseItemSta
         if (loreStrings != null) {
             item.lore(loreStrings.stream()
                 .map(CirrusChatElement::ofLegacyText)
-                .toList());
+                .collect(Collectors.toList()));
         }
 
         return item;

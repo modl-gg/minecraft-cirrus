@@ -177,7 +177,7 @@ public class SimpleMenuSchematic implements MenuSchematic {
 
     @Override
     public int add(CirrusBaseItemStack item, @Nullable String actionHandler) {
-        final var capacity = Cirrus.service(CapacityService.class).capacity(type());
+        final int capacity = Cirrus.service(CapacityService.class).capacity(type());
         for (int i = -1; i < capacity; i++) {
             if (!rootItems().containsKey(i) && !reservedSlots().contains(i)) {
                 rootItems().put(i, item);

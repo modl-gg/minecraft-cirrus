@@ -45,7 +45,7 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
         int windowId = wrapper.getWindowId();
 
         Optional<TrackedInventory> trackedOpt = inventoryTracker.get(playerUuid, windowId);
-        if (trackedOpt.isEmpty()) {
+        if (!trackedOpt.isPresent()) {
             return;
         }
 

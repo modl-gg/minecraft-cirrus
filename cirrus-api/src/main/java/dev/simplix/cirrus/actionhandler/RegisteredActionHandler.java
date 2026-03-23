@@ -6,6 +6,21 @@ package dev.simplix.cirrus.actionhandler;
  * register `ActionHandler`s with the `ActionHandlerRegistry` so that they can be easily accessed
  * and used by menu items.
  */
-public record RegisteredActionHandler(String name, ActionHandler handler) {
+public final class RegisteredActionHandler {
 
+    private final String name;
+    private final ActionHandler handler;
+
+    public RegisteredActionHandler(String name, ActionHandler handler) {
+        this.name = name;
+        this.handler = handler;
+    }
+
+    public String name() {
+        return this.name;
+    }
+
+    public ActionHandler handler() {
+        return this.handler;
+    }
 }

@@ -7,7 +7,17 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class LegacyItemMapping {
 
-    private record LegacyEntry(int dataValue) {}
+    private static final class LegacyEntry {
+        private final int dataValue;
+
+        LegacyEntry(int dataValue) {
+            this.dataValue = dataValue;
+        }
+
+        int dataValue() {
+            return dataValue;
+        }
+    }
 
     private final Map<String, LegacyEntry> MAPPINGS = new HashMap<>();
 

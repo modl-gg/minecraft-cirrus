@@ -8,15 +8,39 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * This class represents a displayed menu.
  */
-public record DisplayedMenu(
-    Menu value,
-    Object nativeMenu,
-    CirrusPlayerWrapper player,
-    MenuBuildService menuBuildService,
-    Long id,
-    AtomicBoolean closed
+public final class DisplayedMenu {
 
-) {
+    private final Menu value;
+    private final Object nativeMenu;
+    private final CirrusPlayerWrapper player;
+    private final MenuBuildService menuBuildService;
+    private final Long id;
+    private final AtomicBoolean closed;
+
+    /**
+     * Creates a new instance of {@code DisplayedMenu}.
+     *
+     * @param value            the menu itself
+     * @param nativeMenu       the native menu object
+     * @param player           the player who sees the menu
+     * @param menuBuildService the menu build service
+     * @param id               the id of the menu
+     * @param closed           whether the menu is closed
+     */
+    public DisplayedMenu(
+        Menu value,
+        Object nativeMenu,
+        CirrusPlayerWrapper player,
+        MenuBuildService menuBuildService,
+        Long id,
+        AtomicBoolean closed) {
+        this.value = value;
+        this.nativeMenu = nativeMenu;
+        this.player = player;
+        this.menuBuildService = menuBuildService;
+        this.id = id;
+        this.closed = closed;
+    }
 
     /**
      * Creates a new instance of {@code DisplayedMenu}.
@@ -37,6 +61,30 @@ public record DisplayedMenu(
         Menus.register(player.uuid(), this);
     }
 
+    public Menu value() {
+        return this.value;
+    }
+
+    public Object nativeMenu() {
+        return this.nativeMenu;
+    }
+
+    public CirrusPlayerWrapper player() {
+        return this.player;
+    }
+
+    public MenuBuildService menuBuildService() {
+        return this.menuBuildService;
+    }
+
+    public Long id() {
+        return this.id;
+    }
+
+    public AtomicBoolean closed() {
+        return this.closed;
+    }
+
     /**
      * Indicates whether some other object is "equal to" this menu.
      *
@@ -52,7 +100,8 @@ public record DisplayedMenu(
             return true;
         }
 
-        if (other instanceof DisplayedMenu otherMenu) {
+        if (other instanceof DisplayedMenu) {
+            DisplayedMenu otherMenu = (DisplayedMenu) other;
             return otherMenu.id.equals(this.id);
         }
 

@@ -68,14 +68,54 @@ public class InventoryTracker {
         return inventories != null && !inventories.isEmpty();
     }
 
-    public record TrackedInventory(
-        int windowId,
-        CirrusInventoryType type,
-        CirrusChatElement title,
-        CirrusBaseItemStack[] items,
-        DisplayedMenu displayedMenu,
-        AtomicInteger stateId
-    ) {
+    public static final class TrackedInventory {
+
+        private final int windowId;
+        private final CirrusInventoryType type;
+        private final CirrusChatElement title;
+        private final CirrusBaseItemStack[] items;
+        private final DisplayedMenu displayedMenu;
+        private final AtomicInteger stateId;
+
+        public TrackedInventory(
+            int windowId,
+            CirrusInventoryType type,
+            CirrusChatElement title,
+            CirrusBaseItemStack[] items,
+            DisplayedMenu displayedMenu,
+            AtomicInteger stateId) {
+            this.windowId = windowId;
+            this.type = type;
+            this.title = title;
+            this.items = items;
+            this.displayedMenu = displayedMenu;
+            this.stateId = stateId;
+        }
+
+        public int windowId() {
+            return this.windowId;
+        }
+
+        public CirrusInventoryType type() {
+            return this.type;
+        }
+
+        public CirrusChatElement title() {
+            return this.title;
+        }
+
+        public CirrusBaseItemStack[] items() {
+            return this.items;
+        }
+
+        public DisplayedMenu displayedMenu() {
+            return this.displayedMenu;
+        }
+
+        public AtomicInteger stateId() {
+            return this.stateId;
+        }
+
         public void setItem(int slot, CirrusBaseItemStack item) {
             if (slot >= 0 && slot < items.length) {
                 items[slot] = item;

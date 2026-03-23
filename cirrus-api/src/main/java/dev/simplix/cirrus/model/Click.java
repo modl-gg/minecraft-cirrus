@@ -40,7 +40,8 @@ public final class Click {
     }
 
     public List<String> arguments() {
-        if (this.clickedItem instanceof CirrusItem cirrusItem) {
+        if (this.clickedItem instanceof CirrusItem) {
+            CirrusItem cirrusItem = (CirrusItem) this.clickedItem;
             return cirrusItem.actionArguments();
         }
         return new ArrayList<>();

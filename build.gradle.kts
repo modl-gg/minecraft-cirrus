@@ -10,7 +10,7 @@ allprojects {
     apply(plugin = "maven-publish")
 
     java {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(8))
         disableAutoTargetJvm()
         withSourcesJar()
         withJavadocJar()

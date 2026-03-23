@@ -92,7 +92,7 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
         int windowId = (int) displayedMenu.nativeMenu();
 
         Optional<TrackedInventory> trackedOpt = inventoryTracker.get(playerUuid, windowId);
-        if (trackedOpt.isEmpty()) {
+        if (!trackedOpt.isPresent()) {
             buildAndOpenMenu(displayedMenu.value(), displayedMenu.player());
             return;
         }
@@ -133,7 +133,7 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
         Menu menu = displayedMenu.value();
         Optional<ActionHandler> handlerOpt = menu.actionHandler(slot);
 
-        if (handlerOpt.isEmpty()) {
+        if (!handlerOpt.isPresent()) {
             // Resync client inventory with incremented state ID to cancel client-side prediction
             User user = getUser(displayedMenu.player());
             int windowId = (int) displayedMenu.nativeMenu();

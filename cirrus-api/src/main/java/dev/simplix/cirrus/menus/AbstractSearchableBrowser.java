@@ -7,6 +7,7 @@ import dev.simplix.cirrus.model.SearchConversation;
 import dev.simplix.cirrus.service.SearchConversationHandleService;
 import dev.simplix.cirrus.text.CirrusChatElement;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +50,7 @@ public abstract class AbstractSearchableBrowser<T> extends AbstractBrowser<T> {
      * @return a map of slot index to CirrusItem
      */
     protected Map<Integer, CirrusItem> intercept0(int menuSize) {
-        return Map.of();
+        return Collections.emptyMap();
     }
 
     protected CirrusItem searchItem() {

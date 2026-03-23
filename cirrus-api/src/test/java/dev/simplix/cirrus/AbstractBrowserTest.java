@@ -6,6 +6,7 @@ import dev.simplix.cirrus.menus.AbstractBrowser;
 import dev.simplix.cirrus.model.Click;
 import dev.simplix.cirrus.text.CirrusChatElement;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
@@ -20,7 +21,7 @@ public class AbstractBrowserTest {
     @BeforeAll
     public static void testBuilding() {
 
-        testBrowser = new AbstractBrowser<>() {
+        testBrowser = new AbstractBrowser<String>() {
 
             @Override
             protected void handleClick(Click click, String value) {
@@ -46,7 +47,7 @@ public class AbstractBrowserTest {
             @Override
             protected Map<Integer, CirrusItem> intercept(int menuSize) {
                 int bottomRowStart = menuSize - 9;
-                return Map.of(
+                return Collections.singletonMap(
                     bottomRowStart,
                     CirrusItem.of(CirrusItemType.ACACIA_BOAT, CirrusChatElement.ofLegacyText("next page"))
                 );

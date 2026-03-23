@@ -253,8 +253,9 @@ public class CirrusItem implements CirrusBaseItemStack {
         if (this == o) return true;
         if (o == null) return false;
 
-        if (!(o instanceof CirrusItem item)) {
-            if (o instanceof CirrusBaseItemStack base) {
+        if (!(o instanceof CirrusItem)) {
+            if (o instanceof CirrusBaseItemStack) {
+                CirrusBaseItemStack base = (CirrusBaseItemStack) o;
                 return Objects.equals(itemType, base.itemType()) &&
                        amount == base.amount() &&
                        durability == base.durability();
@@ -262,6 +263,7 @@ public class CirrusItem implements CirrusBaseItemStack {
             return false;
         }
 
+        CirrusItem item = (CirrusItem) o;
         if (!Objects.equals(lore, item.lore)) return false;
         if (!Objects.equals(itemType, item.itemType)) return false;
         if (!Objects.equals(actionHandler, item.actionHandler)) return false;

@@ -9,6 +9,7 @@ import dev.simplix.cirrus.item.CirrusBaseItemStack;
 import dev.simplix.cirrus.text.CirrusChatElement;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ItemStackSerializer implements JsonSerializer<CirrusBaseItemStack> {
 
@@ -36,7 +37,7 @@ public class ItemStackSerializer implements JsonSerializer<CirrusBaseItemStack> 
 
         final List<String> lores = src.lore().stream()
             .map(CirrusChatElement::asLegacyText)
-            .toList();
+            .collect(Collectors.toList());
         if (!lores.isEmpty()) {
             jsonObject.add("lore", context.serialize(lores));
         }

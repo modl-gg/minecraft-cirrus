@@ -34,8 +34,8 @@ public class ActionHandlers {
     public ActionHandler changeClickedItemType(Supplier<CirrusItemType> function) {
         return (click) -> {
             final CirrusBaseItemStack baseItemStack = click.clickedItem();
-            if (baseItemStack instanceof CirrusItem cirrusItem) {
-                cirrusItem.itemType(function.get());
+            if (baseItemStack instanceof CirrusItem) {
+                ((CirrusItem) baseItemStack).itemType(function.get());
             }
             click.clickedMenu().update();
             return CallResult.DENY_GRABBING;

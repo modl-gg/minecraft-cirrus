@@ -18,6 +18,8 @@ import dev.simplix.cirrus.item.CirrusItemType;
 import dev.simplix.cirrus.text.CirrusChatElement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
@@ -61,7 +63,7 @@ public class PacketItemStackConverter {
             if (lore != null && !lore.isEmpty()) {
                 List<Component> loreComponents = lore.stream()
                     .map(element -> ComponentHelper.removeItalic(element.asComponent()))
-                    .toList();
+                    .collect(Collectors.toList());
                 builder.component(ComponentTypes.LORE, new ItemLore(loreComponents));
             }
         } else {
@@ -102,7 +104,8 @@ public class PacketItemStackConverter {
                 // 1.20.5+: extract SkullOwner into PROFILE component
                 // Do NOT mutate nbtData - it's reused across renders
                 NBT skullOwnerRaw = nbtData.getTags().get("SkullOwner");
-                if (skullOwnerRaw instanceof NBTCompound skullOwner) {
+                if (skullOwnerRaw instanceof NBTCompound) {
+                    NBTCompound skullOwner = (NBTCompound) skullOwnerRaw;
                     ItemProfile profile = extractProfile(skullOwner);
                     if (profile != null) {
                         builder.component(ComponentTypes.PROFILE, profile);
@@ -111,7 +114,7 @@ public class PacketItemStackConverter {
                 builder.component(ComponentTypes.CUSTOM_DATA, nbtData);
             } else {
                 // Pre-1.20.5: merge NBT data directly (SkullOwner, etc.)
-                for (var entry : nbtData.getTags().entrySet()) {
+                for (Map.Entry<String, NBT> entry : nbtData.getTags().entrySet()) {
                     builder.nbt(entry.getKey(), entry.getValue());
                 }
             }
@@ -129,11 +132,14 @@ public class PacketItemStackConverter {
             List<ItemProfile.Property> properties = new ArrayList<>();
 
             NBT propertiesRaw = skullOwner.getTags().get("Properties");
-            if (propertiesRaw instanceof NBTCompound propertiesCompound) {
+            if (propertiesRaw instanceof NBTCompound) {
+                NBTCompound propertiesCompound = (NBTCompound) propertiesRaw;
                 NBT texturesRaw = propertiesCompound.getTags().get("textures");
-                if (texturesRaw instanceof NBTList<?> texturesList) {
+                if (texturesRaw instanceof NBTList<?>) {
+                    NBTList<?> texturesList = (NBTList<?>) texturesRaw;
                     for (Object entry : texturesList.getTags()) {
-                        if (entry instanceof NBTCompound textureEntry) {
+                        if (entry instanceof NBTCompound) {
+                            NBTCompound textureEntry = (NBTCompound) entry;
                             NBT valueRaw = textureEntry.getTags().get("Value");
                             String value = valueRaw instanceof NBTString ? ((NBTString) valueRaw).getValue() : null;
                             NBT sigRaw = textureEntry.getTags().get("Signature");

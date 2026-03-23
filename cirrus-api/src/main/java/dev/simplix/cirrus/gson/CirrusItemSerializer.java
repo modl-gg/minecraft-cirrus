@@ -11,6 +11,7 @@ import dev.simplix.cirrus.item.CirrusItem;
 import dev.simplix.cirrus.text.CirrusChatElement;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CirrusItemSerializer implements JsonSerializer<CirrusItem> {
 
@@ -40,7 +41,7 @@ public class CirrusItemSerializer implements JsonSerializer<CirrusItem> {
         }
         final List<String> lores = src.lore().stream()
             .map(CirrusChatElement::asLegacyText)
-            .toList();
+            .collect(Collectors.toList());
         jsonObject.add("lore", lores.isEmpty() ? new JsonArray() : context.serialize(lores));
         jsonObject.add("amount", new JsonPrimitive(src.amount()));
         jsonObject.add("durability", new JsonPrimitive(src.durability()));
