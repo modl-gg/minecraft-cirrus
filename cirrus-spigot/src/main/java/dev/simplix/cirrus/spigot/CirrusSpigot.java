@@ -24,6 +24,9 @@ import java.util.function.Consumer;
 public class CirrusSpigot {
 
     private static final boolean IS_FOLIA;
+    private static Method foliaGetGlobalScheduler;
+    private static Method foliaGlobalRun;
+
     static {
         boolean folia;
         try {
@@ -33,6 +36,17 @@ public class CirrusSpigot {
             folia = false;
         }
         IS_FOLIA = folia;
+
+        if (IS_FOLIA) {
+            try {
+                foliaGetGlobalScheduler = Bukkit.class.getMethod("getGlobalRegionScheduler");
+                Object scheduler = foliaGetGlobalScheduler.invoke(null);
+                foliaGlobalRun = scheduler.getClass().getMethod("run",
+                        org.bukkit.plugin.Plugin.class, Consumer.class);
+            } catch (Exception e) {
+                // Will fall back to direct execution in foliaRunGlobal
+            }
+        }
     }
 
     private final JavaPlugin plugin;
@@ -73,11 +87,9 @@ public class CirrusSpigot {
 
     private static void foliaRunGlobal(JavaPlugin plugin, Runnable task) {
         try {
-            Object globalScheduler = Bukkit.class.getMethod("getGlobalRegionScheduler").invoke(null);
-            Method runMethod = globalScheduler.getClass().getMethod("run",
-                    org.bukkit.plugin.Plugin.class, Consumer.class);
+            Object globalScheduler = foliaGetGlobalScheduler.invoke(null);
             Consumer<Object> consumer = (scheduledTask) -> task.run();
-            runMethod.invoke(globalScheduler, plugin, consumer);
+            foliaGlobalRun.invoke(globalScheduler, plugin, consumer);
         } catch (Exception e) {
             log.error("Failed to run Folia global task", e);
             task.run();

@@ -3,9 +3,13 @@ plugins {
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "4.1.9-SNAPSHOT"
+version = "4.2.0-SNAPSHOT"
+
+val modPlatformModules = setOf("cirrus-fabric", "cirrus-neoforge")
 
 allprojects {
+    if (name in modPlatformModules) return@allprojects
+
     apply(plugin = "java")
     apply(plugin = "maven-publish")
 
