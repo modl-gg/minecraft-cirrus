@@ -15,9 +15,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Method;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
 @Slf4j
 @RequiredArgsConstructor
 public class CirrusSpigot {
+
+    private static final boolean IS_FOLIA;
+    static {
+        boolean folia;
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            folia = true;
+        } catch (ClassNotFoundException e) {
+            folia = false;
+        }
+        IS_FOLIA = folia;
+    }
 
     private final JavaPlugin plugin;
 
@@ -30,9 +46,14 @@ public class CirrusSpigot {
 
         Cirrus.registerService(ItemService.class, new SpigotItemService());
         Cirrus.registerService(MenuBuildService.class, menuBuildService);
-        Cirrus.registerService(
-            RunSyncService.class,
-            runnable -> Bukkit.getScheduler().runTask(plugin, runnable));
+
+        if (IS_FOLIA) {
+            Cirrus.registerService(RunSyncService.class,
+                runnable -> foliaRunGlobal(plugin, runnable));
+        } else {
+            Cirrus.registerService(RunSyncService.class,
+                runnable -> Bukkit.getScheduler().runTask(plugin, runnable));
+        }
 
         PacketEvents.getAPI().getEventManager().registerListener(
             new SpigotInventoryPacketListener(menuBuildService.getInventoryTracker(), menuBuildService)
@@ -43,6 +64,36 @@ public class CirrusSpigot {
             plugin
         );
 
-        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, new MenuUpdateTask(), 0L, 1L);
+        if (IS_FOLIA) {
+            foliaRunAsyncTimer(plugin, new MenuUpdateTask(), 50, 50, TimeUnit.MILLISECONDS);
+        } else {
+            Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, new MenuUpdateTask(), 0L, 1L);
+        }
+    }
+
+    private static void foliaRunGlobal(JavaPlugin plugin, Runnable task) {
+        try {
+            Object globalScheduler = Bukkit.class.getMethod("getGlobalRegionScheduler").invoke(null);
+            Method runMethod = globalScheduler.getClass().getMethod("run",
+                    org.bukkit.plugin.Plugin.class, Consumer.class);
+            Consumer<Object> consumer = (scheduledTask) -> task.run();
+            runMethod.invoke(globalScheduler, plugin, consumer);
+        } catch (Exception e) {
+            log.error("Failed to run Folia global task", e);
+            task.run();
+        }
+    }
+
+    private static void foliaRunAsyncTimer(JavaPlugin plugin, Runnable task,
+                                            long delay, long period, TimeUnit unit) {
+        try {
+            Object asyncScheduler = Bukkit.class.getMethod("getAsyncScheduler").invoke(null);
+            Method runAtFixedRate = asyncScheduler.getClass().getMethod("runAtFixedRate",
+                    org.bukkit.plugin.Plugin.class, Consumer.class, long.class, long.class, TimeUnit.class);
+            Consumer<Object> consumer = (scheduledTask) -> task.run();
+            runAtFixedRate.invoke(asyncScheduler, plugin, consumer, delay, period, unit);
+        } catch (Exception e) {
+            log.error("Failed to start Folia async timer", e);
+        }
     }
 }
