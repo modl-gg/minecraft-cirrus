@@ -72,6 +72,8 @@ allprojects {
 }
 
 subprojects {
+    if (name in modPlatformModules) return@subprojects
+
     plugins.withId("com.gradleup.shadow") {
         tasks.named<Jar>("jar") {
             archiveClassifier.set("slim")

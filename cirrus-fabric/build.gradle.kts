@@ -35,3 +35,20 @@ dependencies {
     compileOnly("net.kyori:adventure-api:4.14.0")
     compileOnly("net.kyori:adventure-text-serializer-legacy:4.14.0")
 }
+
+// Publish the dev jar (named-mapped) — consumers using Loom will remap it
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            groupId = "gg.modl.minecraft.cirrus"
+            artifactId = "cirrus-fabric"
+            version = project.version.toString()
+            afterEvaluate {
+                val devJar = file("build/devlibs/${project.name}-${project.version}-dev.jar")
+                artifact(devJar) {
+                    builtBy(tasks.named("jar"))
+                }
+            }
+        }
+    }
+}
