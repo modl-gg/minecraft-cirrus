@@ -1,6 +1,7 @@
 plugins {
     id("java")
     `maven-publish`
+    id("com.gradleup.shadow") version "9.3.1"
     id("fabric-loom") version "1.8-SNAPSHOT"
 }
 
@@ -36,7 +37,24 @@ dependencies {
     compileOnly("net.kyori:adventure-text-serializer-legacy:4.14.0")
 }
 
-// Publish the dev jar (named-mapped) — consumers using Loom will remap it
+tasks {
+    assemble {
+        dependsOn(shadowJar)
+    }
+
+    shadowJar {
+        archiveBaseName.set("Cirrus-Fabric")
+        archiveClassifier.set("")
+
+        // Only include cirrus-api and cirrus-common project deps
+        dependencies {
+            include(project(":cirrus-api"))
+            include(project(":cirrus-common"))
+        }
+    }
+}
+
+// Publish the shadow jar (contains cirrus-api + cirrus-common like other platforms)
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
@@ -44,10 +62,7 @@ publishing {
             artifactId = "cirrus-fabric"
             version = project.version.toString()
             afterEvaluate {
-                val devJar = file("build/devlibs/${project.name}-${project.version}-dev.jar")
-                artifact(devJar) {
-                    builtBy(tasks.named("jar"))
-                }
+                artifact(tasks.named("shadowJar"))
             }
         }
     }
