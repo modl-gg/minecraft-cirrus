@@ -92,11 +92,11 @@ subprojects {
             }
             repositories {
                 maven {
-                    name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/modl-gg/minecraft-cirrus")
+                    name = "ModlNexus"
+                    url = uri("https://nexus.modl.gg/repository/maven-releases/")
                     credentials {
-                        username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as String?
-                        password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.token") as String?
+                        username = System.getenv("NEXUS_USER") ?: project.findProperty("nexus.user") as String?
+                        password = System.getenv("NEXUS_PASS") ?: project.findProperty("nexus.pass") as String?
                     }
                 }
             }
