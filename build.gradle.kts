@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "4.2.0-SNAPSHOT"
+version = "4.2.0"
 
 val modPlatformModules = setOf("cirrus-fabric", "cirrus-neoforge")
 

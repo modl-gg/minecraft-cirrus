@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "4.2.0-SNAPSHOT"
+version = "4.2.0"
 
 repositories {
     mavenCentral()
@@ -65,6 +65,16 @@ publishing {
             version = project.version.toString()
             afterEvaluate {
                 artifact(tasks.named("shadowJar"))
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "ModlNexus"
+            url = uri("https://nexus.modl.gg/repository/maven-releases/")
+            credentials {
+                username = System.getenv("NEXUS_USER") ?: project.findProperty("nexus.user") as String?
+                password = System.getenv("NEXUS_PASS") ?: project.findProperty("nexus.pass") as String?
             }
         }
     }
