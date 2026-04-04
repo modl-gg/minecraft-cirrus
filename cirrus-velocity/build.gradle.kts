@@ -34,5 +34,7 @@ tasks {
     shadowJar {
         archiveBaseName.set("Cirrus-Velocity")
         archiveClassifier.set("")
+        relocate("com.github.retrooper.packetevents", "gg.modl.libs.packetevents.api")
+        relocate("io.github.retrooper.packetevents", "gg.modl.libs.packetevents.impl")
     }
 }

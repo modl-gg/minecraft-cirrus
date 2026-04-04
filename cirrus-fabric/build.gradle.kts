@@ -45,6 +45,8 @@ tasks {
     shadowJar {
         archiveBaseName.set("Cirrus-Fabric")
         archiveClassifier.set("")
+        relocate("com.github.retrooper.packetevents", "gg.modl.libs.packetevents.api")
+        relocate("io.github.retrooper.packetevents", "gg.modl.libs.packetevents.impl")
 
         // Only include cirrus-api and cirrus-common project deps
         dependencies {

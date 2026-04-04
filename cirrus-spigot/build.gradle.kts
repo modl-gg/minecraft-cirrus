@@ -37,6 +37,8 @@ tasks {
     shadowJar {
         archiveBaseName.set("Cirrus-Spigot")
         archiveClassifier.set("")
+        relocate("com.github.retrooper.packetevents", "gg.modl.libs.packetevents.api")
+        relocate("io.github.retrooper.packetevents", "gg.modl.libs.packetevents.impl")
     }
 }
 
