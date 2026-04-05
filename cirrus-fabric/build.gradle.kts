@@ -2,11 +2,11 @@ plugins {
     id("java")
     `maven-publish`
     id("com.gradleup.shadow") version "9.3.1"
-    id("fabric-loom") version "1.8-SNAPSHOT"
+    id("fabric-loom") version "1.9-SNAPSHOT"
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "4.2.0"
+version = "4.2.2"
 
 repositories {
     mavenCentral()
@@ -37,26 +37,35 @@ dependencies {
     compileOnly("net.kyori:adventure-text-serializer-legacy:4.14.0")
 }
 
-tasks {
-    assemble {
-        dependsOn(shadowJar)
-    }
-
-    shadowJar {
-        archiveBaseName.set("Cirrus-Fabric")
-        archiveClassifier.set("")
-        relocate("com.github.retrooper.packetevents", "gg.modl.libs.packetevents.api")
-        relocate("io.github.retrooper.packetevents", "gg.modl.libs.packetevents.impl")
-
-        // Only include cirrus-api and cirrus-common project deps
-        dependencies {
-            include(project(":cirrus-api"))
-            include(project(":cirrus-common"))
-        }
-    }
+tasks.shadowJar {
+    isEnabled = false
 }
 
-// Publish the shadow jar (contains cirrus-api + cirrus-common like other platforms)
+tasks.remapJar {
+    archiveClassifier.set("remapped")
+}
+
+val relocatedJar by tasks.registering(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
+    configurations = emptyList()
+    dependsOn(tasks.remapJar)
+    from(zipTree(tasks.remapJar.flatMap { it.archiveFile }))
+
+    // Bundle cirrus-api and cirrus-common into the JAR
+    from(project(":cirrus-api").sourceSets.main.get().output)
+    from(project(":cirrus-common").sourceSets.main.get().output)
+
+    relocate("com.github.retrooper.packetevents", "gg.modl.libs.packetevents.api")
+    relocate("io.github.retrooper.packetevents", "gg.modl.libs.packetevents.impl")
+
+    archiveClassifier.set("")
+    archiveBaseName.set("cirrus-fabric")
+}
+
+tasks.assemble {
+    dependsOn(relocatedJar)
+}
+
+// Publish the final JAR (Loom-remapped + PE-relocated + bundled deps)
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
@@ -64,7 +73,7 @@ publishing {
             artifactId = "cirrus-fabric"
             version = project.version.toString()
             afterEvaluate {
-                artifact(tasks.named("shadowJar"))
+                artifact(relocatedJar)
             }
         }
     }
@@ -72,9 +81,13 @@ publishing {
         maven {
             name = "ModlNexus"
             url = uri("https://nexus.modl.gg/repository/maven-releases/")
-            credentials {
-                username = System.getenv("NEXUS_USER") ?: project.findProperty("nexus.user") as String?
-                password = System.getenv("NEXUS_PASS") ?: project.findProperty("nexus.pass") as String?
+            val nexusUser = System.getenv("NEXUS_USER") ?: project.findProperty("nexus.user") as String?
+            val nexusPass = System.getenv("NEXUS_PASS") ?: project.findProperty("nexus.pass") as String?
+            if (nexusUser != null && nexusPass != null) {
+                credentials {
+                    username = nexusUser
+                    password = nexusPass
+                }
             }
         }
     }

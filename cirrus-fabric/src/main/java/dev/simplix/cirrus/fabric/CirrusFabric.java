@@ -32,7 +32,7 @@ public class CirrusFabric {
 
         Cirrus.registerService(ItemService.class, new FabricItemService());
         Cirrus.registerService(MenuBuildService.class, menuBuildService);
-        Cirrus.registerService(RunSyncService.class, (RunSyncService) server::execute);
+        Cirrus.registerService(RunSyncService.class, (RunSyncService) runnable -> server.execute(runnable));
 
         PacketEvents.getAPI().getEventManager().registerListener(
             new FabricInventoryPacketListener(menuBuildService.getInventoryTracker(), menuBuildService)

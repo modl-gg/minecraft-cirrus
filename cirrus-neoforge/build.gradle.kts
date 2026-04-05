@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "4.2.0"
+version = "4.2.2"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
@@ -38,9 +38,13 @@ publishing {
         maven {
             name = "ModlNexus"
             url = uri("https://nexus.modl.gg/repository/maven-releases/")
-            credentials {
-                username = System.getenv("NEXUS_USER") ?: project.findProperty("nexus.user") as String?
-                password = System.getenv("NEXUS_PASS") ?: project.findProperty("nexus.pass") as String?
+            val nexusUser = System.getenv("NEXUS_USER") ?: project.findProperty("nexus.user") as String?
+            val nexusPass = System.getenv("NEXUS_PASS") ?: project.findProperty("nexus.pass") as String?
+            if (nexusUser != null && nexusPass != null) {
+                credentials {
+                    username = nexusUser
+                    password = nexusPass
+                }
             }
         }
     }
