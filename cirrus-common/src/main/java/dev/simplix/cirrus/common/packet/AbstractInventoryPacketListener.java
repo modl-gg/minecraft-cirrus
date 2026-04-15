@@ -29,6 +29,10 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
 
     protected abstract UUID getPlayerUuid(Object playerHandle);
 
+    protected Object normalizePlayerHandle(Object playerHandle) {
+        return playerHandle;
+    }
+
     public AbstractInventoryPacketListener(InventoryTracker inventoryTracker, AbstractPacketMenuBuildService menuBuildService) {
         super(PacketListenerPriority.NORMAL);
         this.inventoryTracker = inventoryTracker;
@@ -113,11 +117,11 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
         if (user != null) {
             return user.getUUID();
         }
-        return getPlayerUuid(event.getPlayer());
+        return getPlayerUuid(normalizePlayerHandle(event.getPlayer()));
     }
 
     private Object resolvePlayerHandle(PacketReceiveEvent event, TrackedInventory tracked) {
-        Object playerHandle = event.getPlayer();
+        Object playerHandle = normalizePlayerHandle(event.getPlayer());
         if (playerHandle != null) {
             return playerHandle;
         }
@@ -125,7 +129,7 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
         if (tracked.displayedMenu() == null || tracked.displayedMenu().player() == null) {
             return null;
         }
-        return tracked.displayedMenu().player().handle();
+        return normalizePlayerHandle(tracked.displayedMenu().player().handle());
     }
 
     private int resolveProtocolVersion(PacketReceiveEvent event, TrackedInventory tracked) {
@@ -141,9 +145,10 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
     }
 
     private void sendPacket(Object playerHandle, PacketWrapper<?> packet) {
-        if (playerHandle == null || PacketEvents.getAPI() == null) {
+        Object normalizedHandle = normalizePlayerHandle(playerHandle);
+        if (normalizedHandle == null || PacketEvents.getAPI() == null) {
             return;
         }
-        PacketEvents.getAPI().getPlayerManager().sendPacket(playerHandle, packet);
+        PacketEvents.getAPI().getPlayerManager().sendPacket(normalizedHandle, packet);
     }
 }

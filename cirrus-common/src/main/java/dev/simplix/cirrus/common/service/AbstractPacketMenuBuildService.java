@@ -21,7 +21,9 @@ import dev.simplix.cirrus.menu.Menus;
 import dev.simplix.cirrus.model.CirrusClickType;
 import dev.simplix.cirrus.model.Click;
 import dev.simplix.cirrus.player.CirrusPlayerWrapper;
+import dev.simplix.cirrus.service.CirrusServiceRegistry;
 import dev.simplix.cirrus.service.MenuBuildService;
+import dev.simplix.cirrus.service.RunSyncService;
 import dev.simplix.cirrus.text.CirrusChatElement;
 import java.util.ArrayList;
 import java.util.List;
@@ -127,6 +129,15 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
     }
 
     public void handleClick(TrackedInventory tracked, int slot, CirrusClickType clickType) {
+        RunSyncService runSyncService = CirrusServiceRegistry.get(RunSyncService.class);
+        if (runSyncService != null) {
+            runSyncService.runSync(() -> handleClick0(tracked, slot, clickType));
+            return;
+        }
+        handleClick0(tracked, slot, clickType);
+    }
+
+    private void handleClick0(TrackedInventory tracked, int slot, CirrusClickType clickType) {
         DisplayedMenu displayedMenu = tracked.displayedMenu();
         if (displayedMenu == null || displayedMenu.closed().get()) {
             return;
