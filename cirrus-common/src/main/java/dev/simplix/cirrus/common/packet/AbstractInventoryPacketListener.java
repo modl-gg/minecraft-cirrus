@@ -1,11 +1,14 @@
 package dev.simplix.cirrus.common.packet;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCloseWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
@@ -24,6 +27,8 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
     protected final InventoryTracker inventoryTracker;
     protected final AbstractPacketMenuBuildService menuBuildService;
 
+    protected abstract UUID getPlayerUuid(Object playerHandle);
+
     public AbstractInventoryPacketListener(InventoryTracker inventoryTracker, AbstractPacketMenuBuildService menuBuildService) {
         super(PacketListenerPriority.NORMAL);
         this.inventoryTracker = inventoryTracker;
@@ -41,7 +46,11 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
 
     private void handleClickWindow(PacketReceiveEvent event) {
         WrapperPlayClientClickWindow wrapper = new WrapperPlayClientClickWindow(event);
-        UUID playerUuid = event.getUser().getUUID();
+        UUID playerUuid = resolvePlayerUuid(event);
+        if (playerUuid == null) {
+            log.warn("Ignoring {} because no player context could be resolved", event.getPacketType());
+            return;
+        }
         int windowId = wrapper.getWindowId();
 
         Optional<TrackedInventory> trackedOpt = inventoryTracker.get(playerUuid, windowId);
@@ -53,19 +62,25 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
         event.setCancelled(true);
 
         int slot = wrapper.getSlot();
-        User user = event.getUser();
+        Object playerHandle = resolvePlayerHandle(event, tracked);
+        if (playerHandle == null) {
+            log.warn("Ignoring tracked {} for player {} because no player handle could be resolved", event.getPacketType(), playerUuid);
+            return;
+        }
+
+        int protocolVersion = resolveProtocolVersion(event, tracked);
         int stateId = tracked.stateId().incrementAndGet();
 
         // Immediately clear the cursor so the item never visually attaches to it
-        user.sendPacket(new WrapperPlayServerSetSlot(-1, stateId, -1, ItemStack.EMPTY));
+        sendPacket(playerHandle, new WrapperPlayServerSetSlot(-1, stateId, -1, ItemStack.EMPTY));
 
         // Immediately restore the clicked slot so the item doesn't visually disappear
         if (slot >= 0 && slot < tracked.items().length) {
             CirrusBaseItemStack cirrusItem = tracked.items()[slot];
             ItemStack packetItem = cirrusItem != null
-                ? PacketItemStackConverter.toPacketEventsItemStack(cirrusItem, user.getClientVersion().getProtocolVersion())
+                ? PacketItemStackConverter.toPacketEventsItemStack(cirrusItem, protocolVersion)
                 : ItemStack.EMPTY;
-            user.sendPacket(new WrapperPlayServerSetSlot(windowId, stateId, slot, packetItem));
+            sendPacket(playerHandle, new WrapperPlayServerSetSlot(windowId, stateId, slot, packetItem));
         }
 
         int button = wrapper.getButton();
@@ -78,7 +93,11 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
 
     private void handleCloseWindow(PacketReceiveEvent event) {
         WrapperPlayClientCloseWindow wrapper = new WrapperPlayClientCloseWindow(event);
-        UUID playerUuid = event.getUser().getUUID();
+        UUID playerUuid = resolvePlayerUuid(event);
+        if (playerUuid == null) {
+            log.warn("Ignoring {} because no player context could be resolved", event.getPacketType());
+            return;
+        }
         int windowId = wrapper.getWindowId();
 
         Optional<TrackedInventory> trackedOpt = inventoryTracker.get(playerUuid, windowId);
@@ -87,5 +106,44 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
             menuBuildService.handleClose(playerUuid, tracked);
             inventoryTracker.untrack(playerUuid, windowId);
         }
+    }
+
+    private UUID resolvePlayerUuid(PacketReceiveEvent event) {
+        User user = event.getUser();
+        if (user != null) {
+            return user.getUUID();
+        }
+        return getPlayerUuid(event.getPlayer());
+    }
+
+    private Object resolvePlayerHandle(PacketReceiveEvent event, TrackedInventory tracked) {
+        Object playerHandle = event.getPlayer();
+        if (playerHandle != null) {
+            return playerHandle;
+        }
+
+        if (tracked.displayedMenu() == null || tracked.displayedMenu().player() == null) {
+            return null;
+        }
+        return tracked.displayedMenu().player().handle();
+    }
+
+    private int resolveProtocolVersion(PacketReceiveEvent event, TrackedInventory tracked) {
+        User user = event.getUser();
+        if (user != null && user.getClientVersion() != null) {
+            return user.getClientVersion().getProtocolVersion();
+        }
+
+        if (tracked.displayedMenu() != null && tracked.displayedMenu().player() != null) {
+            return tracked.displayedMenu().player().protocolVersion();
+        }
+        return ClientVersion.getLatest().getProtocolVersion();
+    }
+
+    private void sendPacket(Object playerHandle, PacketWrapper<?> packet) {
+        if (playerHandle == null || PacketEvents.getAPI() == null) {
+            return;
+        }
+        PacketEvents.getAPI().getPlayerManager().sendPacket(playerHandle, packet);
     }
 }
