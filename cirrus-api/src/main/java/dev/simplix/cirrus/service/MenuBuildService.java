@@ -9,6 +9,9 @@ public interface MenuBuildService {
     default DisplayedMenu buildAndOpenMenu(
         Menu menu,
         CirrusPlayerWrapper playerWrapper) {
+        if (playerWrapper == null) {
+            return null;
+        }
         menu.handleDisplay();
         if (menu.soundOnOpen() != null) {
             playerWrapper.play(menu.soundOnOpen());

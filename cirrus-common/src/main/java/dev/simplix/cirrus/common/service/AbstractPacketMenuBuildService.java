@@ -1,8 +1,10 @@
 package dev.simplix.cirrus.common.service;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCloseWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
@@ -43,8 +45,10 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
 
     @Override
     public DisplayedMenu openAndBuildMenu0(Menu menu, CirrusPlayerWrapper playerWrapper) {
+        if (playerWrapper == null || PacketEvents.getAPI() == null) {
+            return null;
+        }
         UUID playerUuid = getPlayerUuid(playerWrapper);
-        User user = getUser(playerWrapper);
 
         int windowId = inventoryTracker.generateWindowId(playerUuid);
         long id = generateID();
@@ -75,8 +79,8 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
 
         inventoryTracker.track(playerUuid, windowId, tracked);
 
-        sendOpenWindow(user, windowId, invType, title);
-        sendWindowItems(user, windowId, items, playerWrapper.protocolVersion(), tracked.stateId());
+        sendOpenWindow(playerWrapper, windowId, invType, title);
+        sendWindowItems(playerWrapper, windowId, items, playerWrapper.protocolVersion(), tracked.stateId());
 
         return displayedMenu;
     }
@@ -87,7 +91,6 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
             return;
         }
 
-        User user = getUser(displayedMenu.player());
         UUID playerUuid = getPlayerUuid(displayedMenu.player());
         int windowId = (int) displayedMenu.nativeMenu();
 
@@ -112,14 +115,13 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
             }
         });
 
-        sendWindowItems(user, windowId, items, displayedMenu.player().protocolVersion(), tracked.stateId());
+        sendWindowItems(displayedMenu.player(), windowId, items, displayedMenu.player().protocolVersion(), tracked.stateId());
     }
 
     @Override
     public void closeMenu0(DisplayedMenu displayedMenu) {
-        User user = getUser(displayedMenu.player());
         int windowId = (int) displayedMenu.nativeMenu();
-        user.sendPacket(new WrapperPlayServerCloseWindow(windowId));
+        sendPacket(displayedMenu.player(), new WrapperPlayServerCloseWindow(windowId));
 
         inventoryTracker.untrack(getPlayerUuid(displayedMenu.player()), windowId);
     }
@@ -135,9 +137,8 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
 
         if (!handlerOpt.isPresent()) {
             // Resync client inventory with incremented state ID to cancel client-side prediction
-            User user = getUser(displayedMenu.player());
             int windowId = (int) displayedMenu.nativeMenu();
-            sendWindowItems(user, windowId, tracked.items(), displayedMenu.player().protocolVersion(), tracked.stateId());
+            sendWindowItems(displayedMenu.player(), windowId, tracked.items(), displayedMenu.player().protocolVersion(), tracked.stateId());
             return;
         }
 
@@ -162,9 +163,10 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
         Menus.remove(playerUuid);
     }
 
-    protected void sendOpenWindow(User user, int windowId, CirrusInventoryType type, Component title) {
+    protected void sendOpenWindow(CirrusPlayerWrapper playerWrapper, int windowId, CirrusInventoryType type, Component title) {
+        ClientVersion clientVersion = resolveClientVersion(playerWrapper);
         WrapperPlayServerOpenWindow packet;
-        if (user.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
+        if (clientVersion.isOlderThan(ClientVersion.V_1_14)) {
             packet = new WrapperPlayServerOpenWindow(
                 windowId,
                 type.toLegacyType(),
@@ -179,10 +181,10 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
                 title
             );
         }
-        user.sendPacket(packet);
+        sendPacket(playerWrapper, packet);
     }
 
-    protected void sendWindowItems(User user, int windowId, CirrusBaseItemStack[] items, int protocolVersion, AtomicInteger stateId) {
+    protected void sendWindowItems(CirrusPlayerWrapper playerWrapper, int windowId, CirrusBaseItemStack[] items, int protocolVersion, AtomicInteger stateId) {
         List<ItemStack> packetItems = new ArrayList<>();
 
         for (CirrusBaseItemStack item : items) {
@@ -197,7 +199,25 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
         // Set carried item to EMPTY to clear any item on the cursor.
         int newStateId = stateId.incrementAndGet();
         WrapperPlayServerWindowItems packet = new WrapperPlayServerWindowItems(windowId, newStateId, packetItems, ItemStack.EMPTY);
-        user.sendPacket(packet);
+        sendPacket(playerWrapper, packet);
+    }
+
+    protected ClientVersion resolveClientVersion(CirrusPlayerWrapper playerWrapper) {
+        ClientVersion clientVersion = ClientVersion.getById(playerWrapper.protocolVersion());
+        return clientVersion != null ? clientVersion : ClientVersion.getLatest();
+    }
+
+    protected void sendPacket(CirrusPlayerWrapper playerWrapper, PacketWrapper<?> packet) {
+        if (playerWrapper == null || PacketEvents.getAPI() == null) {
+            return;
+        }
+
+        Object playerHandle = playerWrapper.handle();
+        if (playerHandle == null) {
+            return;
+        }
+
+        PacketEvents.getAPI().getPlayerManager().sendPacket(playerHandle, packet);
     }
 
     protected synchronized long generateID() {
