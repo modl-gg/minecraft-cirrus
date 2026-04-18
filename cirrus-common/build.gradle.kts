@@ -9,4 +9,9 @@ dependencies {
     implementation(project(":cirrus-api"))
     compileOnly("com.github.retrooper:packetevents-api:2.11.2")
     compileOnly("net.kyori:adventure-api:4.14.0")
+
+    testImplementation("com.github.retrooper:packetevents-api:2.11.2")
+    testImplementation("net.kyori:adventure-api:4.14.0")
+    testImplementation("net.kyori:adventure-nbt:4.14.0")
+    testImplementation("org.jspecify:jspecify:1.0.0")
 }

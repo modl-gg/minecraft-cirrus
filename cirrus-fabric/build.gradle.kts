@@ -35,6 +35,10 @@ dependencies {
     compileOnly("com.github.retrooper:packetevents-api:2.11.2")
     compileOnly("net.kyori:adventure-api:4.14.0")
     compileOnly("net.kyori:adventure-text-serializer-legacy:4.14.0")
+
+    testImplementation("com.github.retrooper:packetevents-api:2.11.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
 tasks.shadowJar {
@@ -63,6 +67,10 @@ val relocatedJar by tasks.registering(com.github.jengelman.gradle.plugins.shadow
 
 tasks.assemble {
     dependsOn(relocatedJar)
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 // Publish the final JAR (Loom-remapped + PE-relocated + bundled deps)

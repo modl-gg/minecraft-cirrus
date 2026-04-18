@@ -42,8 +42,19 @@ public class FabricPlayerWrapper implements CirrusPlayerWrapper {
     @Override
     public int protocolVersion() {
         try {
+            if (PacketEvents.getAPI() == null) {
+                return ClientVersion.getLatest().getProtocolVersion();
+            }
+
             User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
-            if (user != null) return user.getClientVersion().getProtocolVersion();
+            if (user != null && user.getClientVersion() != null) {
+                return user.getClientVersion().getProtocolVersion();
+            }
+
+            if (PacketEvents.getAPI().getServerManager() != null
+                && PacketEvents.getAPI().getServerManager().getVersion() != null) {
+                return PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion();
+            }
         } catch (Exception ignored) {
         }
         return ClientVersion.getLatest().getProtocolVersion();

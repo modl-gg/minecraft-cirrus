@@ -112,12 +112,24 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
         }
     }
 
-    private UUID resolvePlayerUuid(PacketReceiveEvent event) {
-        User user = event.getUser();
-        if (user != null) {
+    protected UUID resolvePlayerUuid(User user, Object playerHandle) {
+        Object normalizedHandle = normalizePlayerHandle(playerHandle);
+        UUID handleUuid = getPlayerUuid(normalizedHandle);
+        if (handleUuid != null) {
+            if (user != null && user.getUUID() != null && !user.getUUID().equals(handleUuid)) {
+                log.debug("Using live player UUID {} instead of PacketEvents user UUID {}", handleUuid, user.getUUID());
+            }
+            return handleUuid;
+        }
+
+        if (user != null && user.getUUID() != null) {
             return user.getUUID();
         }
-        return getPlayerUuid(normalizePlayerHandle(event.getPlayer()));
+        return null;
+    }
+
+    private UUID resolvePlayerUuid(PacketReceiveEvent event) {
+        return resolvePlayerUuid(event.getUser(), event.getPlayer());
     }
 
     private Object resolvePlayerHandle(PacketReceiveEvent event, TrackedInventory tracked) {

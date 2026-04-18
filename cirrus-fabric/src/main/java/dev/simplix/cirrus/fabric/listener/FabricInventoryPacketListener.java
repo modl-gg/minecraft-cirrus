@@ -17,19 +17,27 @@ public class FabricInventoryPacketListener extends AbstractInventoryPacketListen
     @Override
     protected UUID getPlayerUuid(Object playerHandle) {
         Object normalizedHandle = normalizePlayerHandle(playerHandle);
-        if (!(normalizedHandle instanceof ServerPlayerEntity)) {
+        if (!isPlayerHandle(normalizedHandle)) {
             return null;
         }
+        return extractPlayerUuid(normalizedHandle);
+    }
+
+    protected boolean isPlayerHandle(Object value) {
+        return value instanceof ServerPlayerEntity;
+    }
+
+    protected UUID extractPlayerUuid(Object normalizedHandle) {
         return ((ServerPlayerEntity) normalizedHandle).getUuid();
     }
 
     @Override
     protected Object normalizePlayerHandle(Object playerHandle) {
-        if (playerHandle == null || playerHandle instanceof ServerPlayerEntity) {
+        if (playerHandle == null || isPlayerHandle(playerHandle)) {
             return playerHandle;
         }
 
-        ServerPlayerEntity player = invokePlayerGetter(playerHandle, "getPlayer");
+        Object player = invokePlayerGetter(playerHandle, "getPlayer");
         if (player != null) {
             return player;
         }
@@ -39,7 +47,32 @@ public class FabricInventoryPacketListener extends AbstractInventoryPacketListen
             return player;
         }
 
+        player = invokePlayerGetter(playerHandle, "getServerPlayer");
+        if (player != null) {
+            return player;
+        }
+
+        player = invokePlayerGetter(playerHandle, "getHandle");
+        if (player != null) {
+            return player;
+        }
+
         player = readPlayerField(playerHandle, "player");
+        if (player != null) {
+            return player;
+        }
+
+        player = readPlayerField(playerHandle, "serverPlayer");
+        if (player != null) {
+            return player;
+        }
+
+        player = readPlayerField(playerHandle, "handle");
+        if (player != null) {
+            return player;
+        }
+
+        player = readFirstPlayerField(playerHandle);
         if (player != null) {
             return player;
         }
@@ -47,7 +80,7 @@ public class FabricInventoryPacketListener extends AbstractInventoryPacketListen
         return playerHandle;
     }
 
-    private ServerPlayerEntity invokePlayerGetter(Object playerHandle, String methodName) {
+    private Object invokePlayerGetter(Object playerHandle, String methodName) {
         Method method = findMethod(playerHandle.getClass(), methodName);
         if (method == null || method.getParameterCount() != 0) {
             return null;
@@ -56,8 +89,8 @@ public class FabricInventoryPacketListener extends AbstractInventoryPacketListen
         try {
             method.setAccessible(true);
             Object value = method.invoke(playerHandle);
-            if (value instanceof ServerPlayerEntity) {
-                return (ServerPlayerEntity) value;
+            if (isPlayerHandle(value)) {
+                return value;
             }
         } catch (ReflectiveOperationException ignored) {
         }
@@ -65,7 +98,7 @@ public class FabricInventoryPacketListener extends AbstractInventoryPacketListen
         return null;
     }
 
-    private ServerPlayerEntity readPlayerField(Object playerHandle, String fieldName) {
+    private Object readPlayerField(Object playerHandle, String fieldName) {
         Field field = findField(playerHandle.getClass(), fieldName);
         if (field == null) {
             return null;
@@ -74,12 +107,30 @@ public class FabricInventoryPacketListener extends AbstractInventoryPacketListen
         try {
             field.setAccessible(true);
             Object value = field.get(playerHandle);
-            if (value instanceof ServerPlayerEntity) {
-                return (ServerPlayerEntity) value;
+            if (isPlayerHandle(value)) {
+                return value;
             }
         } catch (ReflectiveOperationException ignored) {
         }
 
+        return null;
+    }
+
+    private Object readFirstPlayerField(Object playerHandle) {
+        Class<?> current = playerHandle.getClass();
+        while (current != null) {
+            for (Field field : current.getDeclaredFields()) {
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(playerHandle);
+                    if (isPlayerHandle(value)) {
+                        return value;
+                    }
+                } catch (ReflectiveOperationException ignored) {
+                }
+            }
+            current = current.getSuperclass();
+        }
         return null;
     }
 
