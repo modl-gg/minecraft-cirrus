@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "gg.modl.minecraft.cirrus"
-version = "4.2.2"
+version = "4.2.3"
 
 repositories {
     mavenCentral()
@@ -49,7 +49,7 @@ tasks.remapJar {
     archiveClassifier.set("remapped")
 }
 
-val relocatedJar by tasks.registering(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
+val bundledJar by tasks.registering(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
     configurations = emptyList()
     dependsOn(tasks.remapJar)
     from(zipTree(tasks.remapJar.flatMap { it.archiveFile }))
@@ -58,22 +58,19 @@ val relocatedJar by tasks.registering(com.github.jengelman.gradle.plugins.shadow
     from(project(":cirrus-api").sourceSets.main.get().output)
     from(project(":cirrus-common").sourceSets.main.get().output)
 
-    relocate("com.github.retrooper.packetevents", "gg.modl.libs.packetevents.api")
-    relocate("io.github.retrooper.packetevents", "gg.modl.libs.packetevents.impl")
-
     archiveClassifier.set("")
     archiveBaseName.set("cirrus-fabric")
 }
 
 tasks.assemble {
-    dependsOn(relocatedJar)
+    dependsOn(bundledJar)
 }
 
 tasks.test {
     useJUnitPlatform()
 }
 
-// Publish the final JAR (Loom-remapped + PE-relocated + bundled deps)
+// Publish the final JAR (Loom-remapped + bundled deps, PacketEvents left canonical)
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
@@ -81,7 +78,7 @@ publishing {
             artifactId = "cirrus-fabric"
             version = project.version.toString()
             afterEvaluate {
-                artifact(relocatedJar)
+                artifact(bundledJar)
             }
         }
     }
