@@ -17,7 +17,7 @@ dependencies {
     implementation(project(":cirrus-api"))
     implementation(project(":cirrus-common"))
 
-    compileOnly("com.github.retrooper:packetevents-spigot:2.11.2")
+    compileOnly("gg.modl.minecraft.packetevents:packetevents-spigot:${rootProject.extra["packetEventsVersion"]}")
 
     // Adventure API (provided by Paper/Spigot)
     compileOnly("net.kyori:adventure-api:4.14.0")

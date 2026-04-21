@@ -7,10 +7,10 @@ version = "4.2.4"
 
 dependencies {
     implementation(project(":cirrus-api"))
-    compileOnly("com.github.retrooper:packetevents-api:2.11.2")
+    compileOnly("gg.modl.minecraft.packetevents:packetevents-api:${rootProject.extra["packetEventsVersion"]}")
     compileOnly("net.kyori:adventure-api:4.14.0")
 
-    testImplementation("com.github.retrooper:packetevents-api:2.11.2")
+    testImplementation("gg.modl.minecraft.packetevents:packetevents-api:${rootProject.extra["packetEventsVersion"]}")
     testImplementation("net.kyori:adventure-api:4.14.0")
     testImplementation("net.kyori:adventure-nbt:4.14.0")
     testImplementation("org.jspecify:jspecify:1.0.0")

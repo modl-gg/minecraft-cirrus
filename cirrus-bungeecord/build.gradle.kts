@@ -24,5 +24,5 @@ dependencies {
     implementation(project(":cirrus-api"))
     implementation(project(":cirrus-common"))
 
-    compileOnly("com.github.retrooper:packetevents-bungeecord:2.11.2")
+    compileOnly("gg.modl.minecraft.packetevents:packetevents-bungeecord:${rootProject.extra["packetEventsVersion"]}")
 }

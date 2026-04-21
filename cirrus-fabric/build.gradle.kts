@@ -10,6 +10,8 @@ version = "4.2.4"
 
 repositories {
     mavenCentral()
+    maven(url = "https://nexus.modl.gg/repository/maven-releases/")
+    maven(url = "https://nexus.modl.gg/repository/maven-snapshots/")
     maven(url = "https://maven.fabricmc.net/")
     maven(url = "https://repo.codemc.io/repository/maven-releases/")
     maven(url = "https://repo.codemc.io/repository/maven-snapshots/")
@@ -32,11 +34,11 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.36")
     annotationProcessor("org.projectlombok:lombok:1.18.36")
 
-    compileOnly("com.github.retrooper:packetevents-api:2.11.2")
+    compileOnly("gg.modl.minecraft.packetevents:packetevents-api:${rootProject.extra["packetEventsVersion"]}")
     compileOnly("net.kyori:adventure-api:4.14.0")
     compileOnly("net.kyori:adventure-text-serializer-legacy:4.14.0")
 
-    testImplementation("com.github.retrooper:packetevents-api:2.11.2")
+    testImplementation("gg.modl.minecraft.packetevents:packetevents-api:${rootProject.extra["packetEventsVersion"]}")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }

@@ -7,7 +7,7 @@ group = "gg.modl.minecraft.cirrus"
 version = "4.2.4"
 
 dependencies {
-    compileOnly("com.github.retrooper:packetevents-api:2.11.2")
+    compileOnly("gg.modl.minecraft.packetevents:packetevents-api:${rootProject.extra["packetEventsVersion"]}")
 
     // Adventure for text components
     compileOnly("net.kyori:adventure-api:4.14.0")

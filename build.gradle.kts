@@ -4,6 +4,7 @@ plugins {
 
 group = "gg.modl.minecraft.cirrus"
 version = "4.2.4"
+extra["packetEventsVersion"] = "2.12.3"
 
 val modPlatformModules = setOf("cirrus-fabric", "cirrus-neoforge")
 
@@ -31,6 +32,8 @@ allprojects {
 
     repositories {
         mavenCentral()
+        maven(url = "https://nexus.modl.gg/repository/maven-releases/")
+        maven(url = "https://nexus.modl.gg/repository/maven-snapshots/")
         maven(url = "https://libraries.minecraft.net")
         maven(url = "https://repo.codemc.io/repository/maven-releases/")
         maven(url = "https://repo.codemc.io/repository/maven-snapshots/")
