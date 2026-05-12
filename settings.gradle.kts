@@ -1,17 +1,11 @@
 pluginManagement {
     repositories {
         maven(url = "https://maven.fabricmc.net/")
-        maven(url = "https://maven.neoforged.net/releases")
         mavenCentral()
         gradlePluginPortal()
     }
 }
 
-plugins {
-    id("net.neoforged.moddev.repositories") version "2.0.+"
-}
-
-// Extra repos for cirrus-neoforge (which can't declare project-level repos due to ModDevGradle)
 dependencyResolutionManagement {
     @Suppress("UnstableApiUsage")
     repositories {

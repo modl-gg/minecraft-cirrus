@@ -63,9 +63,8 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
         }
 
         TrackedInventory tracked = trackedOpt.get();
-        event.setCancelled(true);
-
         int slot = wrapper.getSlot();
+        event.setCancelled(true);
         Object playerHandle = resolvePlayerHandle(event, tracked);
         if (playerHandle == null) {
             log.warn("Ignoring tracked {} for player {} because no player handle could be resolved", event.getPacketType(), playerUuid);
@@ -79,8 +78,9 @@ public abstract class AbstractInventoryPacketListener extends PacketListenerAbst
         sendPacket(playerHandle, new WrapperPlayServerSetSlot(-1, stateId, -1, ItemStack.EMPTY));
 
         // Immediately restore the clicked slot so the item doesn't visually disappear
-        if (slot >= 0 && slot < tracked.items().length) {
-            CirrusBaseItemStack cirrusItem = tracked.items()[slot];
+        CirrusBaseItemStack[] items = tracked.items();
+        if (slot >= 0 && slot < items.length) {
+            CirrusBaseItemStack cirrusItem = items[slot];
             ItemStack packetItem = cirrusItem != null
                 ? PacketItemStackConverter.toPacketEventsItemStack(cirrusItem, protocolVersion)
                 : ItemStack.EMPTY;

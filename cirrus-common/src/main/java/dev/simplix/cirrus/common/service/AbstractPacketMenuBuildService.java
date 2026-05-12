@@ -110,7 +110,7 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
             return;
         }
 
-        CirrusBaseItemStack[] items = tracked.items();
+        CirrusBaseItemStack[] items = tracked.mutableItems();
         menu.rootItems().forEach((slot, item) -> {
             if (slot >= 0 && slot < items.length) {
                 items[slot] = item;
@@ -153,8 +153,9 @@ public abstract class AbstractPacketMenuBuildService implements MenuBuildService
             return;
         }
 
-        CirrusBaseItemStack clickedItem = slot >= 0 && slot < tracked.items().length
-            ? tracked.items()[slot]
+        CirrusBaseItemStack[] items = tracked.items();
+        CirrusBaseItemStack clickedItem = slot >= 0 && slot < items.length
+            ? items[slot]
             : null;
 
         Click click = new Click(clickType, displayedMenu, clickedItem, slot);

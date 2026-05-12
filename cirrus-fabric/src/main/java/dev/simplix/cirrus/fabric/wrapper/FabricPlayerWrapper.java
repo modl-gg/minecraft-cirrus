@@ -3,6 +3,7 @@ package dev.simplix.cirrus.fabric.wrapper;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
+import com.github.retrooper.packetevents.protocol.sound.Sound;
 import com.github.retrooper.packetevents.protocol.sound.SoundCategory;
 import com.github.retrooper.packetevents.protocol.sound.Sounds;
 import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
@@ -65,7 +66,7 @@ public class FabricPlayerWrapper implements CirrusPlayerWrapper {
         try {
             if (PacketEvents.getAPI() == null) return;
 
-            var peSound = Sounds.getByName(sound.sound().identifier());
+            Sound peSound = Sounds.getByName(sound.sound().identifier());
             if (peSound == null) return;
 
             SoundCategory category = mapSoundCategory(sound.soundCategory());

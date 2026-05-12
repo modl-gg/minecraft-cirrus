@@ -108,6 +108,10 @@ public class InventoryTracker {
             return this.items;
         }
 
+        public CirrusBaseItemStack[] mutableItems() {
+            return this.items;
+        }
+
         public DisplayedMenu displayedMenu() {
             return this.displayedMenu;
         }

@@ -218,18 +218,18 @@ public abstract class AbstractBrowser<T> {
     // ----------------------------------------------------------------------------------------------------
 
     private void build() {
-        built = true;
-
-        registerActionHandlers();
-
         currentPageIndex.set(0);
-        if (elements() == null) {
+        Collection<T> elements = elements();
+        if (elements == null) {
             return;
         }
 
+        built = true;
+        registerActionHandlers();
+
         // Determine menu size first
         int menuSize = fixedSize == null
-                       ? Utils.calculateSizeForContent(elements().size())
+                       ? Utils.calculateSizeForContent(elements.size())
                        : Utils.sizeOfType(fixedSize);
 
         // Get intercepted slots from subclass
@@ -250,7 +250,7 @@ public abstract class AbstractBrowser<T> {
 
         int maximumItemsPerPage = availableSlots.size();
 
-        final List<CirrusItem> collect = elements()
+        final List<CirrusItem> collect = elements
             .stream()
             .map(this::mapAndPut)
             .collect(Collectors.toList());
@@ -360,5 +360,4 @@ public abstract class AbstractBrowser<T> {
     }
 
 }
-
 

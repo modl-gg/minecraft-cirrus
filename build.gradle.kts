@@ -6,7 +6,7 @@ group = "gg.modl.minecraft.cirrus"
 version = "4.2.4"
 extra["packetEventsVersion"] = "2.12.3"
 
-val modPlatformModules = setOf("cirrus-fabric", "cirrus-neoforge")
+val modPlatformModules = setOf("cirrus-fabric")
 
 allprojects {
     if (name in modPlatformModules) return@allprojects

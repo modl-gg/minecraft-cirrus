@@ -13,6 +13,7 @@ import dev.simplix.cirrus.spigot.services.SpigotItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Method;
@@ -42,7 +43,7 @@ public class CirrusSpigot {
                 foliaGetGlobalScheduler = Bukkit.class.getMethod("getGlobalRegionScheduler");
                 Object scheduler = foliaGetGlobalScheduler.invoke(null);
                 foliaGlobalRun = scheduler.getClass().getMethod("run",
-                        org.bukkit.plugin.Plugin.class, Consumer.class);
+                        Plugin.class, Consumer.class);
             } catch (Exception e) {
                 // Will fall back to direct execution in foliaRunGlobal
             }
@@ -101,7 +102,7 @@ public class CirrusSpigot {
         try {
             Object asyncScheduler = Bukkit.class.getMethod("getAsyncScheduler").invoke(null);
             Method runAtFixedRate = asyncScheduler.getClass().getMethod("runAtFixedRate",
-                    org.bukkit.plugin.Plugin.class, Consumer.class, long.class, long.class, TimeUnit.class);
+                    Plugin.class, Consumer.class, long.class, long.class, TimeUnit.class);
             Consumer<Object> consumer = (scheduledTask) -> task.run();
             runAtFixedRate.invoke(asyncScheduler, plugin, consumer, delay, period, unit);
         } catch (Exception e) {

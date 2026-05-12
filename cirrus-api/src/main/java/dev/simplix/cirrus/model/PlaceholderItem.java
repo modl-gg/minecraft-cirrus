@@ -1,7 +1,6 @@
 package dev.simplix.cirrus.model;
 
 import dev.simplix.cirrus.item.CirrusBaseItemStack;
-import java.util.Arrays;
 
 public final class PlaceholderItem {
 
@@ -35,6 +34,6 @@ public final class PlaceholderItem {
         return new PlaceholderItem(
             this.item,
             this.actionHandler,
-            Arrays.copyOf(this.slots, this.slots.length));
+            this.slots);
     }
 }
